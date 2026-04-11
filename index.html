@@ -500,8 +500,8 @@ function setupUser() {
   if(!state.user) return;
   const n = state.user.nome;
   const hora = new Date().getHours();
-  const greeting = hora<12?'Bom dia':'hora<18?'Boa tarde':'Boa noite'';
-  const gr=hora<12?'Bom dia, ':hora<18?'Boa tarde, ':'Boa noite, '; document.getElementById('tb-title').textContent=gr+n.split(' ')[0]+'!';
+  const gr = hora < 12 ? 'Bom dia, ' : hora < 18 ? 'Boa tarde, ' : 'Boa noite, ';
+  document.getElementById('tb-title').textContent = gr + n.split(' ')[0] + '!';
   document.getElementById('tb-sub').textContent = mesAtual();
   const av = initials(n);
   document.getElementById('user-avatar').textContent = av;
