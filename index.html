@@ -277,7 +277,7 @@ var MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 function save(){try{localStorage.setItem('vmv_state',JSON.stringify(state));}catch(e){}}
 function load(){try{var s=localStorage.getItem('vmv_state');if(s)state=JSON.parse(s);}catch(e){}}
 function fmt(v){return 'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtK(v){return v>=1000?'R$\u00a0'+(v/1000).toFixed(1)+'k':'R$\u00a0'+Number(v).toFixed(0);}
+function fmtK(v){return v>=1000?'R$\u00a0'+(v/1000).toFixed(1)+'k':'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function initials(n){return n.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
 function mesAtual(){var d=new Date();return MESES[d.getMonth()]+' '+d.getFullYear();}
 
