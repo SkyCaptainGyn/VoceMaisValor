@@ -49,6 +49,7 @@
     .how-step{display:flex;gap:14px;padding:14px 0;border-bottom:0.5px solid var(--border);align-items:flex-start}.how-step:last-child{border-bottom:none}.how-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}.how-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}.how-desc{font-size:13px;color:var(--muted);line-height:1.5}
     .empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:14px;line-height:1.6}.empty-icon{font-size:36px;margin-bottom:10px;opacity:0.5}
     .c-receita{background:#d1fae5;color:#065f46}.c-moradia{background:#dbeafe;color:#1e40af}.c-alimentacao{background:#dcfce7;color:#166534}.c-transporte{background:#fef9c3;color:#854d0e}.c-saude{background:#fee2e2;color:#991b1b}.c-lazer{background:#f3e8ff;color:#6b21a8}.c-educacao{background:#ffedd5;color:#9a3412}.c-outros{background:#f3f4f6;color:#374151}.c-investimento{background:#e0f2fe;color:#075985}
+    .c-contas{background:#fce7f3;color:#9d174d}
     .toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);left:50%;transform:translateX(-50%) translateY(-20px);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:99;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .onboarding{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 24px 48px;text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
     .onboard-sub{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:28px;max-width:300px}.onboard-features{text-align:left;margin-bottom:32px;width:100%;max-width:320px}.onboard-feat{display:flex;align-items:center;gap:14px;padding:10px 0;font-size:15px;color:var(--text)}.onboard-feat-icon{width:36px;height:36px;border-radius:10px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
@@ -109,6 +110,7 @@
         <button class="pill" onclick="filterL('alimentacao',this)">Alimentação</button>
         <button class="pill" onclick="filterL('transporte',this)">Transporte</button>
         <button class="pill" onclick="filterL('saude',this)">Saúde</button>
+        <button class="pill" onclick="filterL('contas',this)">Contas</button>
         <button class="pill" onclick="filterL('lazer',this)">Lazer</button>
       </div>
       <div class="card" id="lanc-list"><div class="empty"><div class="empty-icon">📋</div>Nenhum lançamento.<br>Toque no + para adicionar.</div></div>
@@ -185,7 +187,8 @@
     </div>
     <div class="field"><label>Descrição</label><input id="l-desc" placeholder="Ex: Salário, Supermercado..."></div>
     <div class="field"><label>Valor (R$)</label><input id="l-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
-    <div class="field"><label>Categoria</label><select id="l-cat"><option value="receita">💰 Salário / Receita</option><option value="alimentacao">🛒 Alimentação</option><option value="moradia">🏠 Moradia</option><option value="transporte">🚗 Transporte</option><option value="saude">❤️ Saúde</option><option value="lazer">🎮 Lazer</option><option value="educacao">📚 Educação</option><option value="investimento">📈 Investimento</option><option value="outros">📦 Outros</option></select></div>
+    <div class="field"><label>Categoria</label><select id="l-cat"><option value="receita">💰 Salário / Receita</option><option value="alimentacao">🛒 Alimentação</option><option value="moradia">🏠 Moradia</option>
+        <option value="contas">🧾 Contas (água, luz, gás, internet)</option><option value="transporte">🚗 Transporte</option><option value="saude">❤️ Saúde</option><option value="lazer">🎮 Lazer</option><option value="educacao">📚 Educação</option><option value="investimento">📈 Investimento</option><option value="outros">📦 Outros</option></select></div>
     <button class="btn-primary" onclick="salvarLanc()">Salvar lançamento</button>
     <button class="btn-secondary" onclick="closeModal('modal')">Cancelar</button>
   </div>
@@ -225,6 +228,23 @@
 </div>
 
 
+
+<!-- MODAL EDITAR META -->
+<div class="overlay" id="modal-edit-meta" onclick="closeOuter(event,'modal-edit-meta')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Editar meta</div>
+    <div class="field"><label>Nome da meta</label><input id="em-nome" placeholder="Ex: Reserva de emergência"></div>
+    <div class="row2">
+      <div class="field"><label>Valor alvo (R$)</label><input id="em-alvo" type="number" min="1" placeholder="10000"></div>
+      <div class="field"><label>Já tenho (R$)</label><input id="em-atual" type="number" min="0" placeholder="0"></div>
+    </div>
+    <button class="btn-primary" onclick="salvarEdicaoMeta()">Salvar alterações</button>
+    <button class="btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="excluirMeta()">Excluir meta</button>
+    <button class="btn-secondary" onclick="closeModal('modal-edit-meta')">Cancelar</button>
+  </div>
+</div>
+
 <!-- MODAL EDITAR LANÇAMENTO -->
 <div class="overlay" id="modal-edit" onclick="closeOuter(event,'modal-edit')">
   <div class="sheet">
@@ -241,6 +261,7 @@
         <option value="receita">💰 Salário / Receita</option>
         <option value="alimentacao">🛒 Alimentação</option>
         <option value="moradia">🏠 Moradia</option>
+        <option value="contas">🧾 Contas (água, luz, gás, internet)</option>
         <option value="transporte">🚗 Transporte</option>
         <option value="saude">❤️ Saúde</option>
         <option value="lazer">🎮 Lazer</option>
@@ -384,7 +405,7 @@ function addMeta(){
 function metaItem(m){
   var pct=Math.min(100,Math.round((m.atual/m.alvo)*100)),color=pct>=100?'var(--green)':pct>=60?'var(--blue)':'var(--amber)';
   var tag=pct>=100?'<span class="meta-tag" style="background:var(--green-light);color:var(--green)">Concluída ✓</span>':'';
-  return '<div class="meta-item"><div class="meta-hdr"><span class="meta-name">'+m.nome+tag+'</span><span class="meta-pct">'+pct+'%</span></div><div class="meta-bar"><div class="meta-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="meta-vals"><span>'+fmt(m.atual)+'</span><span>'+fmt(m.alvo)+'</span></div></div>';
+  return '<div class="meta-item" style="cursor:pointer" onclick="abrirEdicaoMeta('+m.id+')"><div class="meta-hdr"><span class="meta-name">'+m.nome+tag+'</span><div style="display:flex;align-items:center;gap:8px"><span class="meta-pct">'+pct+'%</span><span style="color:var(--muted);font-size:15px">✎</span></div></div><div class="meta-bar"><div class="meta-fill" style="width:'+pct+'%;background:'+color+'"></div></div><div class="meta-vals"><span>'+fmt(m.atual)+'</span><span>'+fmt(m.alvo)+'</span></div></div>';
 }
 
 function renderMetas(){
@@ -443,7 +464,7 @@ function enviarFeedback(){
   var texto=document.getElementById('fb-texto').value.trim(),email=document.getElementById('fb-email').value.trim();
   if(!texto){toast('Escreva seu feedback primeiro');return;}
   var nome=state.user?state.user.nome:'Anônimo';
-  fetch('https://formspree.io/f/xkgwqdjo',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({nome:nome,email:email,mensagem:texto,app:'VoceMaisValor Beta'})})
+  fetch('https://formspree.io/f/mzdknwzn',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({nome:nome,email:email,mensagem:texto,app:'VoceMaisValor Beta'})})
     .then(function(r){toast(r.ok?'Feedback enviado — obrigado!':'Erro ao enviar. Tente novamente.');})
     .catch(function(){toast('Sem conexão. Tente novamente.');});
   closeModal('modal-feedback');document.getElementById('fb-texto').value='';document.getElementById('fb-email').value='';
@@ -460,6 +481,40 @@ function clearData(){
   state.lancamentos=[];state.metas=[];save();renderAll();toast('Dados apagados');
 }
 
+
+
+var editandoMetaId = null;
+
+function abrirEdicaoMeta(id){
+  var m = state.metas.find(function(x){return x.id===id;});
+  if(!m) return;
+  editandoMetaId = id;
+  document.getElementById('em-nome').value = m.nome;
+  document.getElementById('em-alvo').value = m.alvo;
+  document.getElementById('em-atual').value = m.atual;
+  document.getElementById('modal-edit-meta').classList.add('open');
+}
+
+function salvarEdicaoMeta(){
+  var nome=document.getElementById('em-nome').value.trim();
+  var alvo=parseFloat(document.getElementById('em-alvo').value)||0;
+  var atual=parseFloat(document.getElementById('em-atual').value)||0;
+  if(!nome||alvo<=0){toast('Preencha nome e valor alvo');return;}
+  var idx=state.metas.findIndex(function(x){return x.id===editandoMetaId;});
+  if(idx===-1) return;
+  state.metas[idx].nome=nome;
+  state.metas[idx].alvo=alvo;
+  state.metas[idx].atual=atual;
+  save();closeModal('modal-edit-meta');renderMetas();renderDash();
+  toast('Meta atualizada ✓');
+}
+
+function excluirMeta(){
+  if(!confirm('Excluir esta meta?')) return;
+  state.metas=state.metas.filter(function(x){return x.id!==editandoMetaId;});
+  save();closeModal('modal-edit-meta');renderMetas();renderDash();
+  toast('Meta excluída');
+}
 
 var editandoId = null;
 var tipoEdit = 'receita';
