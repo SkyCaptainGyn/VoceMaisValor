@@ -224,6 +224,37 @@
   </div>
 </div>
 
+
+<!-- MODAL EDITAR LANÇAMENTO -->
+<div class="overlay" id="modal-edit" onclick="closeOuter(event,'modal-edit')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Editar lançamento</div>
+    <div class="type-toggle">
+      <button class="type-btn sel-rec" id="edit-btn-rec" onclick="setTipoEdit('receita')">+ Receita</button>
+      <button class="type-btn" id="edit-btn-desp" onclick="setTipoEdit('despesa')">− Despesa</button>
+    </div>
+    <div class="field"><label>Descrição</label><input id="edit-desc" placeholder="Ex: Salário, Supermercado..."></div>
+    <div class="field"><label>Valor (R$)</label><input id="edit-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
+    <div class="field"><label>Categoria</label>
+      <select id="edit-cat">
+        <option value="receita">💰 Salário / Receita</option>
+        <option value="alimentacao">🛒 Alimentação</option>
+        <option value="moradia">🏠 Moradia</option>
+        <option value="transporte">🚗 Transporte</option>
+        <option value="saude">❤️ Saúde</option>
+        <option value="lazer">🎮 Lazer</option>
+        <option value="educacao">📚 Educação</option>
+        <option value="investimento">📈 Investimento</option>
+        <option value="outros">📦 Outros</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+    <button class="btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="excluirLanc()">Excluir lançamento</button>
+    <button class="btn-secondary" onclick="closeModal('modal-edit')">Cancelar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -333,7 +364,7 @@ function filterL(f,btn){
 
 function lancItem(l){
   var ci=CAT[l.cat]||CAT.outros;
-  return '<div class="lanc"><div class="lanc-icon '+ci.cls+'">'+ci.icon+'</div><div class="lanc-body"><div class="lanc-desc">'+l.desc+'</div><div class="lanc-cat">'+ci.label+'</div></div><div class="lanc-val '+(l.tipo==='receita'?'pos':'neg')+'">'+(l.tipo==='receita'?'+':'−')+fmtK(l.val)+'</div></div>';
+  return '<div class="lanc" style="cursor:pointer" onclick="abrirEdicao('+l.id+')"><div class="lanc-icon '+ci.cls+'">'+ci.icon+'</div><div class="lanc-body"><div class="lanc-desc">'+l.desc+'</div><div class="lanc-cat">'+ci.label+'</div></div><div style="display:flex;align-items:center;gap:10px"><div class="lanc-val '+(l.tipo==='receita'?'pos':'neg')+'">'+(l.tipo==='receita'?'+':'−')+fmtK(l.val)+'</div><span style="color:var(--muted);font-size:16px">✎</span></div></div>';
 }
 
 function renderLancs(){
@@ -412,7 +443,7 @@ function enviarFeedback(){
   var texto=document.getElementById('fb-texto').value.trim(),email=document.getElementById('fb-email').value.trim();
   if(!texto){toast('Escreva seu feedback primeiro');return;}
   var nome=state.user?state.user.nome:'Anônimo';
-  fetch('https://formspree.io/f/https://formspree.io/f/mzdknwzn',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({nome:nome,email:email,mensagem:texto,app:'VoceMaisValor Beta'})})
+  fetch('https://formspree.io/f/xkgwqdjo',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({nome:nome,email:email,mensagem:texto,app:'VoceMaisValor Beta'})})
     .then(function(r){toast(r.ok?'Feedback enviado — obrigado!':'Erro ao enviar. Tente novamente.');})
     .catch(function(){toast('Sem conexão. Tente novamente.');});
   closeModal('modal-feedback');document.getElementById('fb-texto').value='';document.getElementById('fb-email').value='';
@@ -427,6 +458,51 @@ function editarNome(){
 function clearData(){
   if(!confirm('Apagar todos os lançamentos e metas?'))return;
   state.lancamentos=[];state.metas=[];save();renderAll();toast('Dados apagados');
+}
+
+
+var editandoId = null;
+var tipoEdit = 'receita';
+
+function abrirEdicao(id){
+  var l = state.lancamentos.find(function(x){return x.id===id;});
+  if(!l) return;
+  editandoId = id;
+  tipoEdit = l.tipo;
+  document.getElementById('edit-desc').value = l.desc;
+  document.getElementById('edit-val').value = l.val;
+  document.getElementById('edit-cat').value = l.cat;
+  var br=document.getElementById('edit-btn-rec'),bd=document.getElementById('edit-btn-desp');
+  if(l.tipo==='receita'){br.className='type-btn sel-rec';bd.className='type-btn';}
+  else{bd.className='type-btn sel-desp';br.className='type-btn';}
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function setTipoEdit(t){
+  tipoEdit=t;
+  var br=document.getElementById('edit-btn-rec'),bd=document.getElementById('edit-btn-desp');
+  if(t==='receita'){br.className='type-btn sel-rec';bd.className='type-btn';}
+  else{bd.className='type-btn sel-desp';br.className='type-btn';}
+}
+
+function salvarEdicao(){
+  var desc=document.getElementById('edit-desc').value.trim();
+  var val=parseFloat(document.getElementById('edit-val').value);
+  var cat=document.getElementById('edit-cat').value;
+  if(!desc||!val||val<=0){toast('Preencha descrição e valor');return;}
+  var idx=state.lancamentos.findIndex(function(x){return x.id===editandoId;});
+  if(idx===-1) return;
+  state.lancamentos[idx].desc=desc;
+  state.lancamentos[idx].val=val;
+  state.lancamentos[idx].cat=cat;
+  state.lancamentos[idx].tipo=tipoEdit;
+  save();closeModal('modal-edit');renderAll();toast('Lançamento atualizado ✓');
+}
+
+function excluirLanc(){
+  if(!confirm('Excluir este lançamento?')) return;
+  state.lancamentos=state.lancamentos.filter(function(x){return x.id!==editandoId;});
+  save();closeModal('modal-edit');renderAll();toast('Lançamento excluído');
 }
 
 function renderAll(){renderDash();if(document.getElementById('screen-lancamentos').classList.contains('active'))renderLancs();if(document.getElementById('screen-metas').classList.contains('active'))renderMetas();}
