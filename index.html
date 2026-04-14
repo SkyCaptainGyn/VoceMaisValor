@@ -142,15 +142,44 @@
     </div>
 
     <div class="screen" id="screen-relatorios">
+      <div class="card" id="resumo-mes-card" style="margin-bottom:12px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px;font-weight:500" id="resumo-titulo">Resumo do mês</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="resumo-grid">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Receitas</div>
+            <div style="font-size:18px;font-weight:700;color:var(--green)" id="res-rec">R$ 0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Despesas</div>
+            <div style="font-size:18px;font-weight:700;color:var(--red)" id="res-desp">R$ 0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Saldo</div>
+            <div style="font-size:18px;font-weight:700" id="res-saldo">R$ 0,00</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Taxa de economia</div>
+            <div style="font-size:18px;font-weight:700;color:var(--blue)" id="res-taxa">0%</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);font-size:12px;color:var(--muted)" id="res-insight"></div>
+      </div>
+
       <div class="period-tabs">
         <button class="period-tab active" onclick="setPer('mes',this)">Mês</button>
         <button class="period-tab" onclick="setPer('3m',this)">3 meses</button>
         <button class="period-tab" onclick="setPer('6m',this)">6 meses</button>
         <button class="period-tab" onclick="setPer('ano',this)">Ano</button>
       </div>
-      <div class="card"><div class="sec-title" style="margin-bottom:14px">Receitas vs Despesas</div><div class="chart-wrap" style="height:200px"><canvas id="cBar" role="img" aria-label="Receitas e despesas por mês">Comparativo mensal</canvas></div></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="sec-title">Receitas vs Despesas</div>
+          <div style="display:flex;gap:12px" id="bar-legend"></div>
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cBar" role="img" aria-label="Receitas e despesas por mês">Comparativo mensal</canvas></div>
+      </div>
       <div class="card"><div class="sec-title" style="margin-bottom:14px">Gastos por categoria</div><div style="display:flex;gap:16px;align-items:center"><div style="width:130px;height:130px;flex-shrink:0;position:relative"><canvas id="cPie" role="img" aria-label="Gastos por categoria">Categorias</canvas></div><div id="pie-leg" style="flex:1;font-size:12px;display:flex;flex-direction:column;gap:7px"></div></div></div>
-      <div class="card"><div class="sec-title" style="margin-bottom:14px">Evolução do saldo</div><div class="chart-wrap" style="height:180px"><canvas id="cLine" role="img" aria-label="Evolução do saldo">Saldo</canvas></div></div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div class="sec-title">Evolução do saldo</div><span style="font-size:11px;color:var(--muted)">acumulado no período</span></div><div class="chart-wrap" style="height:180px"><canvas id="cLine" role="img" aria-label="Evolução do saldo">Saldo</canvas></div></div>
       <div class="card" id="card-cartoes-rel">
         <div class="sec-title" style="margin-bottom:14px">Gastos por cartão</div>
         <div id="cartoes-rel-list"><div style="color:var(--muted);font-size:13px">Nenhum gasto com cartão registrado.</div></div>
@@ -860,21 +889,217 @@ function renderDash(){
   hm.innerHTML=mslice.length?mslice.map(metaItem).join(''):'<div class="empty" style="padding:16px 0"><div style="font-size:13px">Nenhuma meta definida.</div></div>';
 }
 
+function renderResumoMes(dados, periodo) {
+  var d = dados.length ? dados[dados.length-1] : {rec:0,desp:0,saldo:0};
+  var anterior = dados.length >= 2 ? dados[dados.length-2] : null;
+  var rec=0, desp=0;
+  if(periodo==='Mês') { rec=d.rec; desp=d.desp; }
+  else { dados.forEach(function(m){ rec+=m.rec; desp+=m.desp; }); }
+  var saldo=rec-desp, taxa=rec>0?Math.round((saldo/rec)*100):0;
+  var tituloMap={'Mês':'Resumo do mês atual','3 meses':'Resumo — últimos 3 meses','6 meses':'Resumo — últimos 6 meses','Ano':'Resumo do ano'};
+  var tEl=document.getElementById('resumo-titulo'); if(tEl) tEl.textContent=tituloMap[periodo]||'Resumo';
+  var rEl=document.getElementById('res-rec'); if(rEl) rEl.textContent=fmt(rec);
+  var dEl=document.getElementById('res-desp'); if(dEl) dEl.textContent=fmt(desp);
+  var sEl=document.getElementById('res-saldo'); if(sEl){sEl.textContent=fmt(saldo);sEl.style.color=saldo>=0?'var(--green)':'var(--red)';}
+  var tEl2=document.getElementById('res-taxa'); if(tEl2) tEl2.textContent=taxa+'%';
+  var iEl=document.getElementById('res-insight');
+  var insight='';
+  if(anterior && periodo==='Mês'){
+    var diffD=anterior.desp>0?Math.round(((desp-anterior.desp)/anterior.desp)*100):0;
+    var diffR=anterior.rec>0?Math.round(((rec-anterior.rec)/anterior.rec)*100):0;
+    if(diffD!==0){
+      insight+='<span style="color:'+(diffD>0?'var(--red)':'var(--green)')+'">'+( diffD>0?'↑':'↓')+' Despesas '+Math.abs(diffD)+'% vs mês anterior</span>';
+    }
+    if(diffR!==0){
+      if(insight) insight+='&nbsp;&nbsp;·&nbsp;&nbsp;';
+      insight+='<span style="color:'+(diffR>0?'var(--green)':'var(--red)')+'">'+( diffR>0?'↑':'↓')+' Receitas '+Math.abs(diffR)+'% vs mês anterior</span>';
+    }
+  }
+  if(!insight){
+    if(taxa>=20) insight='✦ Ótimo! Você está economizando '+taxa+'% da sua renda.';
+    else if(taxa>0) insight='Período fechado no positivo. Continue assim!';
+    else if(rec===0) insight='Nenhum lançamento no período ainda.';
+    else insight='⚠ Despesas maiores que receitas. Revise seus gastos.';
+  }
+  if(iEl) iEl.innerHTML=insight;
+}
+
 function setPer(p,btn){document.querySelectorAll('.period-tab').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');renderRelatorios();}
 
+function calcDadosMensais() {
+  // Retorna dados reais dos últimos 6 meses a partir dos lançamentos
+  var hoje = new Date();
+  var meses = [];
+  for(var i = 5; i >= 0; i--) {
+    var d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    meses.push({ mes: d.getMonth(), ano: d.getFullYear(), label: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][d.getMonth()] });
+  }
+  var result = meses.map(function(m) {
+    var lancsDoMes = state.lancamentos.filter(function(l) {
+      var d = new Date(l.data);
+      return d.getMonth() === m.mes && d.getFullYear() === m.ano;
+    });
+    var rec  = lancsDoMes.filter(function(l){return l.tipo==='receita';}).reduce(function(s,l){return s+l.val;},0);
+    var desp = lancsDoMes.filter(function(l){return l.tipo==='despesa';}).reduce(function(s,l){return s+l.val;},0);
+    return { label: m.label, rec: rec, desp: desp, saldo: rec - desp };
+  });
+  return result;
+}
+
 function renderRelatorios(){
-  var t=totals(),labels=['Jan','Fev','Mar','Abr'],recs=[4800,5200,5500,t.rec],desps=[3900,4100,4500,t.desp],saldos=[900,1100,1000,t.saldo];
-  var isDark=window.matchMedia('(prefers-color-scheme:dark)').matches,tickColor=isDark?'#9095a8':'#6b7280',gridColor=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
-  if(charts.bar)charts.bar.destroy();
-  charts.bar=new Chart(document.getElementById('cBar').getContext('2d'),{type:'bar',data:{labels:labels,datasets:[{label:'Receitas',data:recs,backgroundColor:'#1a8a4a',borderRadius:6,barPercentage:0.55},{label:'Despesas',data:desps,backgroundColor:'#c0392b',borderRadius:6,barPercentage:0.55}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:tickColor}},y:{grid:{color:gridColor},ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:tickColor}}}}});
-  var byCat={};state.lancamentos.filter(function(l){return l.tipo==='despesa';}).forEach(function(l){byCat[l.cat]=(byCat[l.cat]||0)+l.val;});
-  var cats=Object.keys(byCat),vals=cats.map(function(k){return byCat[k];}),clrs=['#1847b8','#1a8a4a','#b8690a','#c0392b','#7c3aed','#0891b2','#b45309','#dc2626'],total=vals.reduce(function(a,b){return a+b;},0);
-  if(charts.pie)charts.pie.destroy();
-  charts.pie=new Chart(document.getElementById('cPie').getContext('2d'),{type:'doughnut',data:{labels:cats,datasets:[{data:vals,backgroundColor:clrs.slice(0,cats.length),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmtK(c.raw);}}}}}});
-  var leg=document.getElementById('pie-leg');
-  leg.innerHTML=cats.length?cats.map(function(c,i){return '<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:'+clrs[i]+'"></span><span style="color:var(--muted)">'+(CAT[c]?CAT[c].label:c)+'</span><span style="margin-left:auto;font-weight:600;color:var(--text)">'+(total>0?Math.round((vals[i]/total)*100):0)+'%</span></div>';}).join(''):'<div style="color:var(--muted);font-size:13px">Sem despesas ainda.</div>';
-  if(charts.line)charts.line.destroy();
-  charts.line=new Chart(document.getElementById('cLine').getContext('2d'),{type:'line',data:{labels:labels,datasets:[{label:'Saldo',data:saldos,borderColor:'#1847b8',backgroundColor:'rgba(24,71,184,0.08)',tension:0.4,fill:true,pointBackgroundColor:'#1847b8',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:tickColor}},y:{grid:{color:gridColor},ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:tickColor}}}}});
+  var isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var tickColor = isDark ? '#9095a8' : '#6b7280';
+  var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  // Período selecionado
+  var periodoAtivo = document.querySelector('.period-tab.active');
+  var periodo = periodoAtivo ? periodoAtivo.textContent.trim() : 'Mês';
+
+  var dados = calcDadosMensais();
+
+  // Renderizar resumo do topo
+  renderResumoMes(dados, periodo);
+
+  // Filtrar por período
+  var dadosFiltrados;
+  if(periodo === 'Mês') {
+    dadosFiltrados = dados.slice(-1);
+  } else if(periodo === '3 meses') {
+    dadosFiltrados = dados.slice(-3);
+  } else if(periodo === '6 meses') {
+    dadosFiltrados = dados;
+  } else {
+    dadosFiltrados = dados; // ano = 6 meses por ora (expandir com backend)
+  }
+
+  // Se só 1 mês, mostrar semanas
+  var labels, recs, desps, saldos;
+  if(dadosFiltrados.length === 1) {
+    // Quebrar por semanas do mês atual
+    var hoje = new Date();
+    var semanas = ['Sem 1','Sem 2','Sem 3','Sem 4'];
+    recs  = [0,0,0,0];
+    desps = [0,0,0,0];
+    state.lancamentos.forEach(function(l) {
+      var d = new Date(l.data);
+      if(d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear()) {
+        var sem = Math.min(3, Math.floor((d.getDate()-1)/7));
+        if(l.tipo==='receita') recs[sem]+=l.val;
+        else desps[sem]+=l.val;
+      }
+    });
+    saldos = recs.map(function(r,i){return r-desps[i];});
+    labels = semanas;
+  } else {
+    labels = dadosFiltrados.map(function(d){return d.label;});
+    recs   = dadosFiltrados.map(function(d){return d.rec;});
+    desps  = dadosFiltrados.map(function(d){return d.desp;});
+    saldos = dadosFiltrados.map(function(d){return d.saldo;});
+  }
+
+  // ── Gráfico Barras — Receitas vs Despesas (dados reais) ──────────────────
+  if(charts.bar) charts.bar.destroy();
+  charts.bar = new Chart(document.getElementById('cBar').getContext('2d'), {
+    type: 'bar',
+    data: { labels: labels, datasets: [
+      { label:'Receitas', data:recs,  backgroundColor:'#1a8a4a', borderRadius:6, barPercentage:0.55 },
+      { label:'Despesas', data:desps, backgroundColor:'#c0392b', borderRadius:6, barPercentage:0.55 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){ return c.dataset.label+': '+fmt(c.raw); }}}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:11},color:tickColor} },
+        y:{ grid:{color:gridColor}, ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:tickColor} }
+      }
+    }
+  });
+
+  // ── Legenda manual ────────────────────────────────────────────────────────
+  var legBar = document.getElementById('bar-legend');
+  if(legBar) legBar.innerHTML =
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#1a8a4a;flex-shrink:0"></span><span style="color:var(--muted);font-size:12px">Receitas</span></span>' +
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;flex-shrink:0"></span><span style="color:var(--muted);font-size:12px">Despesas</span></span>';
+
+  // ── Gráfico Pizza — Despesas por categoria (dados reais, período) ─────────
+  var lancPeriodo = state.lancamentos.filter(function(l) {
+    if(l.tipo !== 'despesa') return false;
+    if(dadosFiltrados.length === 1 && labels[0]==='Sem 1') {
+      // modo semanal = mês atual
+      var hoje2 = new Date();
+      var d = new Date(l.data);
+      return d.getMonth()===hoje2.getMonth() && d.getFullYear()===hoje2.getFullYear();
+    }
+    // filtrar pelos meses do período
+    var inicio = new Date(); inicio.setMonth(inicio.getMonth() - dadosFiltrados.length + 1); inicio.setDate(1);
+    return new Date(l.data) >= inicio;
+  });
+
+  var byCat = {};
+  lancPeriodo.forEach(function(l){ byCat[l.cat]=(byCat[l.cat]||0)+l.val; });
+  var cats = Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];});
+  var vals = cats.map(function(k){return byCat[k];});
+  var clrs = ['#1847b8','#1a8a4a','#b8690a','#c0392b','#7c3aed','#0891b2','#b45309','#dc2626','#9d174d','#065f46'];
+  var total = vals.reduce(function(a,b){return a+b;},0);
+
+  if(charts.pie) charts.pie.destroy();
+  if(cats.length) {
+    charts.pie = new Chart(document.getElementById('cPie').getContext('2d'), {
+      type:'doughnut',
+      data:{ labels:cats, datasets:[{ data:vals, backgroundColor:clrs.slice(0,cats.length), borderWidth:0, hoverOffset:4 }]},
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'65%',
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' ('+Math.round((c.raw/total)*100)+'%)';}}}}
+      }
+    });
+  } else {
+    // Sem dados — limpar canvas
+    var ctx = document.getElementById('cPie').getContext('2d');
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    if(charts.pie) { charts.pie.destroy(); charts.pie = null; }
+  }
+
+  var leg = document.getElementById('pie-leg');
+  leg.innerHTML = cats.length ? cats.map(function(c,i){
+    var pct = total>0 ? Math.round((vals[i]/total)*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:'+clrs[i]+'"></span>' +
+      '<span style="color:var(--muted);font-size:12px">'+(CAT[c]?CAT[c].label:c)+'</span>' +
+      '<span style="margin-left:auto;font-weight:600;color:var(--text);font-size:12px">'+fmt(vals[i])+'</span>' +
+      '<span style="color:var(--muted);font-size:11px;min-width:28px;text-align:right">'+pct+'%</span>' +
+      '</div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px">Sem despesas no período.</div>';
+
+  // ── Gráfico Linha — Evolução do saldo (dados reais) ───────────────────────
+  var saldosAcum = saldos.map(function(s,i){
+    return saldos.slice(0,i+1).reduce(function(a,b){return a+b;},0);
+  });
+  // Se saldo acumulado for todo zero, usar saldo por período
+  var usarAcum = saldosAcum.some(function(s){return s!==0;});
+  var saldosFinal = usarAcum ? saldosAcum : saldos;
+
+  if(charts.line) charts.line.destroy();
+  charts.line = new Chart(document.getElementById('cLine').getContext('2d'), {
+    type:'line',
+    data:{ labels:labels, datasets:[{
+      label:'Saldo', data:saldosFinal,
+      borderColor:'#1847b8', backgroundColor:'rgba(24,71,184,0.08)',
+      tension:0.4, fill:true, pointBackgroundColor:'#1847b8', pointRadius:5,
+      pointHoverRadius:7
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return 'Saldo: '+fmt(c.raw);}}}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:11},color:tickColor} },
+        y:{ grid:{color:gridColor}, ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:tickColor} }
+      }
+    }
+  });
+
+  // Atualizar relatório de cartões
+  renderCartoesRelatorio();
 }
 
 function enviarFeedback(){
