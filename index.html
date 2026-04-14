@@ -163,6 +163,29 @@
       <div class="card">
         <div class="sec-title" style="margin-bottom:16px">Adicionar cartão</div>
         <div class="field"><label>Nome do cartão</label><input id="c-nome" placeholder="Ex: Nubank, Itaú Platinum..."></div>
+        <div class="row2">
+          <div class="field"><label>Vencimento da fatura</label>
+            <select id="c-venc">
+              <option value="1">Dia 1</option><option value="2">Dia 2</option>
+              <option value="3">Dia 3</option><option value="4">Dia 4</option>
+              <option value="5">Dia 5</option><option value="6">Dia 6</option>
+              <option value="7">Dia 7</option><option value="8">Dia 8</option>
+              <option value="9">Dia 9</option><option value="10">Dia 10</option>
+              <option value="11">Dia 11</option><option value="12">Dia 12</option>
+              <option value="13">Dia 13</option><option value="14">Dia 14</option>
+              <option value="15">Dia 15</option><option value="16">Dia 16</option>
+              <option value="17">Dia 17</option><option value="18">Dia 18</option>
+              <option value="19">Dia 19</option><option value="20">Dia 20</option>
+              <option value="21">Dia 21</option><option value="22">Dia 22</option>
+              <option value="23">Dia 23</option><option value="24">Dia 24</option>
+              <option value="25">Dia 25</option><option value="26">Dia 26</option>
+              <option value="27">Dia 27</option><option value="28">Dia 28</option>
+            </select>
+          </div>
+          <div class="field"><label>Limite (R$) — opcional</label>
+            <input id="c-limite" type="number" min="0" placeholder="Ex: 5000">
+          </div>
+        </div>
         <div class="field"><label>Bandeira</label>
           <select id="c-bandeira">
             <option value="Visa">Visa</option>
@@ -412,7 +435,7 @@ function startApp(){
     {id:6,tipo:'despesa',desc:'Academia',val:110,cat:'saude',pagamento:'debito',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()}
   ];
   state.metas=[{id:1,nome:'Reserva de emergência',alvo:18000,atual:4500},{id:2,nome:'Viagem nas férias',alvo:6000,atual:1800}];
-  state.cartoes=[{id:1,nome:'Nubank',bandeira:'Mastercard',cor:'8B5CF6'},{id:2,nome:'Itaú',bandeira:'Visa',cor:'E53E3E'}];
+  state.cartoes=[{id:1,nome:'Nubank',bandeira:'Mastercard',cor:'8B5CF6',venc:10,limite:5000},{id:2,nome:'Itaú',bandeira:'Visa',cor:'E53E3E',venc:20,limite:8000}];
   state.nextId=10;
   save();
   document.getElementById('onboarding').style.display='none';
@@ -432,6 +455,27 @@ function setupUser(){
   document.getElementById('p-name').innerHTML=n+' <span style="font-size:14px;color:var(--blue)">✎</span>';
 }
 
+function verificarVencimentos() {
+  if(!state.cartoes || !state.cartoes.length) return;
+  var hoje = new Date().getDate();
+  var alertas = [];
+  state.cartoes.forEach(function(c) {
+    var venc = c.venc || 10;
+    var dias = venc >= hoje ? venc - hoje : (28 - hoje + venc);
+    if(dias <= 3) {
+      var txt = dias === 0 ? c.nome+': fatura vence HOJE!' : c.nome+': fatura vence em '+dias+' dia'+(dias>1?'s':'')+'!';
+      alertas.push(txt);
+    }
+  });
+  if(alertas.length) {
+    setTimeout(function(){
+      alertas.forEach(function(a, i){
+        setTimeout(function(){ toast('⚠ '+a); }, i * 2600);
+      });
+    }, 1000);
+  }
+}
+
 
 // ── CARTÕES ──────────────────────────────────────────────────────────────────
 var corSelecionada = '8B5CF6';
@@ -447,12 +491,16 @@ function salvarCartao() {
   var nome = document.getElementById('c-nome').value.trim();
   var bandeira = document.getElementById('c-bandeira').value;
   var cor = document.getElementById('c-cor').value || '8B5CF6';
+  var venc = parseInt(document.getElementById('c-venc').value) || 10;
+  var limite = parseFloat(document.getElementById('c-limite').value) || 0;
   if(!nome){ toast('Informe o nome do cartão'); return; }
-  state.cartoes.push({id: state.nextId++, nome: nome, bandeira: bandeira, cor: cor});
+  state.cartoes.push({id: state.nextId++, nome: nome, bandeira: bandeira, cor: cor, venc: venc, limite: limite});
   save();
   document.getElementById('c-nome').value = '';
+  document.getElementById('c-limite').value = '';
   renderCartoes();
   atualizarSelectCartoes();
+  verificarVencimentos();
   toast('Cartão adicionado ✓');
 }
 
@@ -478,14 +526,35 @@ function renderCartoes() {
   }
   el.innerHTML = state.cartoes.map(function(c) {
     var gasto = gastoCartao(c.id);
+    var hoje = new Date().getDate();
+    var venc = c.venc || 10;
+    var diasRestantes = venc >= hoje ? venc - hoje : (28 - hoje + venc);
+    var alertaVenc = '';
+    if(diasRestantes <= 5) {
+      var corAlerta = diasRestantes <= 2 ? '#fee2e2' : '#fef9c3';
+      var textoAlerta = diasRestantes === 0 ? 'Vence HOJE!' : 'Vence em '+diasRestantes+' dia'+(diasRestantes>1?'s':'');
+      alertaVenc = '<div style="background:'+corAlerta+';color:#1a1a2e;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;margin-top:8px;display:inline-block">⚠ '+textoAlerta+'</div>';
+    }
+    var limiteInfo = '';
+    if(c.limite > 0) {
+      var pctUsado = Math.min(100, Math.round((gasto/c.limite)*100));
+      var corBarra = pctUsado >= 90 ? '#ef4444' : pctUsado >= 70 ? '#f59e0b' : 'rgba(255,255,255,0.5)';
+      limiteInfo = '<div style="margin-top:10px">' +
+        '<div style="font-size:11px;opacity:0.8;margin-bottom:4px">Limite: '+fmt(gasto)+' / '+fmt(c.limite)+' ('+pctUsado+'%)</div>' +
+        '<div style="height:5px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden">' +
+        '<div style="height:100%;width:'+pctUsado+'%;background:'+corBarra+';border-radius:3px"></div>' +
+        '</div></div>';
+    }
     return '<div class="cartao-card" style="background:#'+c.cor+'">' +
       '<div class="cartao-actions">' +
       '<button class="cartao-btn" onclick="excluirCartao('+c.id+')">Remover</button>' +
       '</div>' +
       '<div class="cartao-chip"></div>' +
       '<div class="cartao-nome">'+c.nome+'</div>' +
-      '<div class="cartao-bandeira">'+c.bandeira+'</div>' +
-      '<div class="cartao-gasto">Gasto no mês: <strong>'+fmt(gasto)+'</strong></div>' +
+      '<div class="cartao-bandeira">'+c.bandeira+' · Vence dia '+venc+'</div>' +
+      '<div class="cartao-gasto">Fatura atual: <strong>'+fmt(gasto)+'</strong></div>' +
+      limiteInfo +
+      alertaVenc +
       '</div>';
   }).join('');
 }
@@ -664,30 +733,73 @@ function lancItem(l){
   var pagBadge='';
   if(l.tipo==='despesa' && l.pagamento){
     var pagClass='pag-'+(l.pagamento||'pix');
-    var pagLabel=PAG_LABEL[l.pagamento]||l.pagamento;
+    var pagLabel='';
+    // Cartão: mostrar nome do cartão
     if(l.cartaoId){
       var card=state.cartoes.find(function(c){return c.id===l.cartaoId;});
       if(card) pagLabel=card.nome;
+    } else {
+      pagLabel=PAG_LABEL[l.pagamento]||l.pagamento;
     }
-    if(l.parcelas>1) pagLabel+=' '+l.parcelaAtual+'/'+l.parcelas;
+    // Parcelas: adicionar indicador limpo
+    if(l.parcelas>1){
+      pagLabel+=' · '+l.parcelaAtual+'/'+l.parcelas+'x';
+    }
     pagBadge='<span class="pag-badge '+pagClass+'">'+pagLabel+'</span>';
+  }
+  // Badge à vista (só para despesas sem parcelamento)
+  if(l.tipo==='despesa' && l.parcelas===1 && l.pagamento==='credito'){
+    pagBadge='<span class="pag-badge pag-credito">'+(l.cartaoId?(state.cartoes.find(function(c){return c.id===l.cartaoId;})||{nome:'Crédito'}).nome:'Crédito')+' · à vista</span>';
   }
   return '<div class="lanc" style="cursor:pointer" onclick="abrirEdicao('+l.id+')">'+
     '<div class="lanc-icon '+ci.cls+'">'+ci.icon+'</div>'+
     '<div class="lanc-body">'+
       '<div class="lanc-desc">'+l.desc+'</div>'+
-      '<div class="lanc-cat">'+ci.label+pagBadge+'</div>'+
+      '<div class="lanc-cat" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">'+ci.label+pagBadge+'</div>'+
     '</div>'+
-    '<div style="display:flex;align-items:center;gap:10px">'+
+    '<div style="display:flex;align-items:center;gap:8px">'+
       '<div class="lanc-val '+(l.tipo==='receita'?'pos':'neg')+'">'+(l.tipo==='receita'?'+':'−')+fmtK(l.val)+'</div>'+
-      '<span style="color:var(--muted);font-size:16px">✎</span>'+
+      '<span style="color:var(--muted);font-size:15px">✎</span>'+
     '</div></div>';
 }
 
 function renderLancs(){
-  var el=document.getElementById('lanc-list'),items=state.lancamentos.slice().reverse();
-  if(filtroAtual!=='todos')items=items.filter(function(l){return l.tipo===filtroAtual||l.cat===filtroAtual;});
-  el.innerHTML=items.length?items.map(lancItem).join(''):'<div class="empty"><div class="empty-icon">📋</div>Nenhum lançamento encontrado.</div>';
+  var el=document.getElementById('lanc-list');
+  var items=state.lancamentos.slice().reverse();
+  if(filtroAtual!=='todos') items=items.filter(function(l){return l.tipo===filtroAtual||l.cat===filtroAtual;});
+  var vistos={};
+  var itemsFinal=[];
+  items.forEach(function(l){
+    if(l.parcelas>1){
+      var chave=l.desc.replace(/ \(\d+\/\d+\)$/,'')+'-'+l.cat+'-'+l.parcelas;
+      if(!vistos[chave]){
+        vistos[chave]=true;
+        var resumo=Object.assign({},l);
+        resumo.desc=l.desc.replace(/ \(\d+\/\d+\)$/,'');
+        resumo._resumo=true;
+        itemsFinal.push(resumo);
+      }
+    } else { itemsFinal.push(l); }
+  });
+  el.innerHTML=itemsFinal.length?itemsFinal.map(function(l){
+    if(l._resumo){
+      var ci=CAT[l.cat]||CAT.outros;
+      var card=l.cartaoId?state.cartoes.find(function(c){return c.id===l.cartaoId;}):null;
+      var cNome=card?card.nome:'Crédito';
+      return '<div class="lanc" style="cursor:pointer" onclick="abrirEdicao('+l.id+')">'+
+        '<div class="lanc-icon '+ci.cls+'">'+ci.icon+'</div>'+
+        '<div class="lanc-body">'+
+          '<div class="lanc-desc">'+l.desc+'</div>'+
+          '<div class="lanc-cat" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">'+ci.label+
+          '<span class="pag-badge pag-credito">'+cNome+' · '+l.parcelas+'x</span></div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<div class="lanc-val neg" style="text-align:right">−'+fmtK(l.val)+'<br><span style="font-size:10px;color:var(--muted)">por parcela</span></div>'+
+          '<span style="color:var(--muted);font-size:15px">✎</span>'+
+        '</div></div>';
+    }
+    return lancItem(l);
+  }).join(''):'<div class="empty"><div class="empty-icon">📋</div>Nenhum lançamento encontrado.</div>';
 }
 
 function addMeta(){
@@ -733,7 +845,16 @@ function renderDash(){
   var top=Object.entries(byCat).sort(function(a,b){return b[1]-a[1];})[0];
   document.getElementById('m-cat').textContent=top?fmtK(top[1]):'—';
   document.getElementById('m-cat-d').textContent=top?(CAT[top[0]]?CAT[top[0]].label:top[0]):'—';
-  var hl=document.getElementById('home-lancs'),last=state.lancamentos.slice().reverse().slice(0,5);
+  var mesAtualNum = new Date().getMonth();
+  var anoAtualNum = new Date().getFullYear();
+  // Filtrar por mês atual e agrupar parceladas (mostrar só 1ª ocorrência de cada grupo)
+  var lancMes = state.lancamentos.filter(function(l){
+    var d = new Date(l.data);
+    return d.getMonth()===mesAtualNum && d.getFullYear()===anoAtualNum;
+  });
+  // Para parceladas, mostrar só a parcela do mês (não duplicar)
+  var last = lancMes.slice().reverse().slice(0,5);
+  var hl=document.getElementById('home-lancs');
   hl.innerHTML=last.length?last.map(lancItem).join(''):'<div class="empty"><div class="empty-icon">💸</div>Nenhum lançamento ainda.<br>Toque no + para começar.</div>';
   var hm=document.getElementById('home-metas'),mslice=state.metas.slice(0,2);
   hm.innerHTML=mslice.length?mslice.map(metaItem).join(''):'<div class="empty" style="padding:16px 0"><div style="font-size:13px">Nenhuma meta definida.</div></div>';
@@ -882,6 +1003,8 @@ function renderAll(){renderDash();if(document.getElementById('screen-lancamentos
 
 load();
 if(!state.cartoes) state.cartoes = [];
+// garantir campos novos em cartões antigos
+state.cartoes.forEach(function(c){ if(!c.venc) c.venc=10; if(!c.limite) c.limite=0; });
 // garantir campos novos em lançamentos antigos
 state.lancamentos.forEach(function(l){
   if(!l.pagamento) l.pagamento = 'pix';
@@ -889,7 +1012,7 @@ state.lancamentos.forEach(function(l){
   if(!l.parcelas) l.parcelas = 1;
   if(!l.parcelaAtual) l.parcelaAtual = 1;
 });
-if(state.user){document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';setupUser();renderAll();}
+if(state.user){document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';setupUser();renderAll();verificarVencimentos();}
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}
 </script>
 </body>
