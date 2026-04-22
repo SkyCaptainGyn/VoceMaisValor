@@ -171,6 +171,14 @@
         <button class="period-tab" onclick="setPer('6m',this)">6 meses</button>
         <button class="period-tab" onclick="setPer('ano',this)">Ano</button>
       </div>
+      <div id="nav-mes-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:8px 14px">
+        <button onclick="navegarMes(-1)" style="background:none;border:none;font-size:20px;color:var(--blue);cursor:pointer;padding:0 4px;font-family:inherit">‹</button>
+        <div style="text-align:center">
+          <div style="font-size:14px;font-weight:600;color:var(--text)" id="label-mes-nav">Mês atual</div>
+          <div style="font-size:11px;color:var(--muted)" id="label-mes-sub"></div>
+        </div>
+        <button onclick="navegarMes(1)" id="btn-mes-prox" style="background:none;border:none;font-size:20px;color:var(--blue);cursor:pointer;padding:0 4px;font-family:inherit">›</button>
+      </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div class="sec-title">Receitas vs Despesas</div>
@@ -183,6 +191,15 @@
       <div class="card" id="card-cartoes-rel">
         <div class="sec-title" style="margin-bottom:14px">Gastos por cartão</div>
         <div id="cartoes-rel-list"><div style="color:var(--muted);font-size:13px">Nenhum gasto com cartão registrado.</div></div>
+      </div>
+      <div class="card" id="card-projecao">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="sec-title">Projeção do mês</div>
+          <span style="font-size:11px;color:var(--muted)" id="proj-dias-label"></span>
+        </div>
+        <div id="proj-content">
+          <div style="color:var(--muted);font-size:13px">Adicione lançamentos para ver a projeção.</div>
+        </div>
       </div>
       <div class="pro-banner"><div class="pro-title">VoceMaisValor Pro ✦</div><div class="pro-sub">Relatórios avançados, exportação PDF e acesso à consultoria de investimentos com Daniel.</div><button class="pro-btn" onclick="openConsult()">Conhecer o Pro + agendar consultoria</button></div>
     </div>
@@ -924,7 +941,127 @@ function renderResumoMes(dados, periodo) {
   if(iEl) iEl.innerHTML=insight;
 }
 
-function setPer(p,btn){document.querySelectorAll('.period-tab').forEach(function(t){t.classList.remove('active');});btn.classList.add('active');renderRelatorios();}
+// ── Estado da navegação de mês ────────────────────────────────────────────
+var mesSelecionado = 0; // 0 = mês atual, -1 = mês anterior, etc.
+
+function setPer(p,btn){
+  document.querySelectorAll('.period-tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  // Nav por mês só faz sentido no modo 'Mês'
+  var navWrap = document.getElementById('nav-mes-wrap');
+  var projCard = document.getElementById('card-projecao');
+  if(navWrap) navWrap.style.display = (p==='mes' || p==='Mês') ? 'flex' : 'none';
+  if(projCard) projCard.style.display = (p==='mes' || p==='Mês') ? 'block' : 'none';
+  renderRelatorios();
+}
+
+function navegarMes(dir) {
+  mesSelecionado += dir;
+  // Não permitir navegar para frente além do mês atual
+  if(mesSelecionado > 0) mesSelecionado = 0;
+  renderRelatorios();
+}
+
+function getMesNavegado() {
+  var hoje = new Date();
+  return new Date(hoje.getFullYear(), hoje.getMonth() + mesSelecionado, 1);
+}
+
+function atualizarNavMes() {
+  var d = getMesNavegado();
+  var MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var lbl = document.getElementById('label-mes-nav');
+  var sub = document.getElementById('label-mes-sub');
+  var btnProx = document.getElementById('btn-mes-prox');
+  if(lbl) lbl.textContent = mesSelecionado === 0 ? 'Mês atual' : MESES_NOMES[d.getMonth()]+' '+d.getFullYear();
+  if(sub) sub.textContent = mesSelecionado === 0 ? MESES_NOMES[d.getMonth()]+' '+d.getFullYear() : '';
+  if(btnProx) btnProx.style.opacity = mesSelecionado >= 0 ? '0.3' : '1';
+  if(btnProx) btnProx.style.pointerEvents = mesSelecionado >= 0 ? 'none' : 'auto';
+}
+
+function getLancamentosMesNavegado() {
+  var d = getMesNavegado();
+  return state.lancamentos.filter(function(l) {
+    var ld = new Date(l.data);
+    return ld.getMonth() === d.getMonth() && ld.getFullYear() === d.getFullYear();
+  });
+}
+
+// ── Projeção do mês ────────────────────────────────────────────────────────
+function renderProjecao() {
+  var el = document.getElementById('proj-content');
+  var lblDias = document.getElementById('proj-dias-label');
+  if(!el) return;
+
+  // Só projeta para o mês atual
+  if(mesSelecionado !== 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px">Projeção disponível apenas para o mês atual.</div>';
+    if(lblDias) lblDias.textContent = '';
+    return;
+  }
+
+  var hoje = new Date();
+  var diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+  var diaAtual = hoje.getDate();
+  var diasRestantes = diasNoMes - diaAtual;
+  var diasPassados = diaAtual;
+
+  if(lblDias) lblDias.textContent = 'dia '+diaAtual+' de '+diasNoMes;
+
+  var lancs = getLancamentosMesNavegado();
+  var recAtual  = lancs.filter(function(l){return l.tipo==='receita';}).reduce(function(s,l){return s+l.val;},0);
+  var despAtual = lancs.filter(function(l){return l.tipo==='despesa';}).reduce(function(s,l){return s+l.val;},0);
+
+  if(despAtual === 0 && recAtual === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px">Adicione lançamentos para ver a projeção.</div>';
+    return;
+  }
+
+  // Projeção linear simples
+  var taxaDiaria = despAtual / diasPassados;
+  var despProjetada = Math.round(taxaDiaria * diasNoMes * 100) / 100;
+  var saldoAtual = recAtual - despAtual;
+
+  // Progresso do mês (barra)
+  var pctMes = Math.round((diaAtual / diasNoMes) * 100);
+  var pctGasto = recAtual > 0 ? Math.min(100, Math.round((despAtual/recAtual)*100)) : 0;
+
+  // Cor da projeção
+  var corProj = despProjetada <= recAtual ? 'var(--green)' : 'var(--red)';
+  var iconeProj = despProjetada <= recAtual ? '✅' : '⚠';
+  var textoProj = despProjetada <= recAtual
+    ? 'No ritmo atual você vai fechar o mês no positivo.'
+    : 'Atenção: no ritmo atual as despesas vão superar as receitas.';
+
+  el.innerHTML =
+    // Barra progresso do mês
+    '<div style="margin-bottom:14px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px">'+
+        '<span>Progresso do mês</span><span>'+pctMes+'% concluído</span>'+
+      '</div>'+
+      '<div style="height:7px;background:var(--pill);border-radius:4px;overflow:hidden">'+
+        '<div style="height:100%;width:'+pctMes+'%;background:var(--blue);border-radius:4px"></div>'+
+      '</div>'+
+    '</div>'+
+    // Grid de números
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'+
+      '<div style="background:var(--bg);border-radius:10px;padding:10px">'+
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Gasto até hoje</div>'+
+        '<div style="font-size:17px;font-weight:700;color:var(--red)">'+fmt(despAtual)+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+pctGasto+'% da receita</div>'+
+      '</div>'+
+      '<div style="background:var(--bg);border-radius:10px;padding:10px">'+
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Projeção final</div>'+
+        '<div style="font-size:17px;font-weight:700;color:'+corProj+'">'+fmt(despProjetada)+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">se mantiver o ritmo</div>'+
+      '</div>'+
+    '</div>'+
+    // Insight
+    '<div style="background:var(--bg);border-radius:10px;padding:10px;font-size:13px;color:var(--text);line-height:1.5">'+
+      iconeProj+' '+textoProj+
+      (diasRestantes > 0 ? ' Restam <strong>'+diasRestantes+' dias</strong> e <strong>'+fmt(Math.max(0, recAtual - despAtual))+'</strong> disponíveis.' : '')+
+    '</div>';
+}
 
 function calcDadosMensais() {
   // Retorna dados reais dos últimos 6 meses a partir dos lançamentos
@@ -1100,6 +1237,10 @@ function renderRelatorios(){
 
   // Atualizar relatório de cartões
   renderCartoesRelatorio();
+  // Fase B — resumo
+  renderResumoMes(dadosFiltrados, periodo);
+  // Fase C — projeção
+  renderProjecao();
 }
 
 function enviarFeedback(){
