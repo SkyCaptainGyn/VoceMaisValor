@@ -49,6 +49,13 @@
     .how-step{display:flex;gap:14px;padding:14px 0;border-bottom:0.5px solid var(--border);align-items:flex-start}.how-step:last-child{border-bottom:none}.how-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px}.how-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}.how-desc{font-size:13px;color:var(--muted);line-height:1.5}
     .empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:14px;line-height:1.6}.empty-icon{font-size:36px;margin-bottom:10px;opacity:0.5}
     .c-receita{background:#d1fae5;color:#065f46}.c-moradia{background:#dbeafe;color:#1e40af}.c-alimentacao{background:#dcfce7;color:#166534}.c-transporte{background:#fef9c3;color:#854d0e}.c-saude{background:#fee2e2;color:#991b1b}.c-lazer{background:#f3e8ff;color:#6b21a8}.c-educacao{background:#ffedd5;color:#9a3412}.c-outros{background:#f3f4f6;color:#374151}.c-investimento{background:#e0f2fe;color:#075985}
+    .c-beleza{background:#fce7f3;color:#9d174d}
+    .c-academia{background:#d1fae5;color:#065f46}
+    .c-pets{background:#fef3c7;color:#92400e}
+    .c-filhos{background:#e0f2fe;color:#1e40af}
+    .c-viagem{background:#dbeafe;color:#1d4ed8}
+    .c-presentes{background:#fde8ff;color:#7e22ce}
+    .c-vestuario{background:#fff7ed;color:#9a3412}
     .c-contas{background:#fce7f3;color:#9d174d}
     .cartao-card{border-radius:16px;padding:20px 18px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;min-height:90px}
     .cartao-chip{width:32px;height:24px;border-radius:5px;background:rgba(255,255,255,0.35);margin-bottom:12px}
@@ -92,7 +99,7 @@
 <div id="app" style="display:none">
   <div class="topbar">
     <div><div class="topbar-title" id="tb-title">VoceMaisValor</div><div class="topbar-sub" id="tb-sub"></div></div>
-    <div class="avatar" id="user-avatar" onclick="goTo('perfil')">?</div>
+    <div class="avatar" id="user-avatar" onclick="goTo('perfil')" title="Meu Perfil" style="position:relative">?<div style="position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;background:var(--green);border-radius:50%;border:2px solid var(--card)"></div></div>
   </div>
   <div class="main" id="main-scroll">
 
@@ -126,6 +133,12 @@
         <button class="pill" onclick="filterL('transporte',this)">Transporte</button>
         <button class="pill" onclick="filterL('saude',this)">Saúde</button>
         <button class="pill" onclick="filterL('contas',this)">Contas</button>
+        <button class="pill" onclick="filterL('beleza',this)">Beleza</button>
+        <button class="pill" onclick="filterL('pets',this)">Pets</button>
+        <button class="pill" onclick="filterL('filhos',this)">Filhos</button>
+        <button class="pill" onclick="filterL('viagem',this)">Viagem</button>
+        <button class="pill" onclick="filterL('vestuario',this)">Vestuário</button>
+        <button class="pill" onclick="filterL('investimento',this)">Investimento</button>
         <button class="pill" onclick="filterL('lazer',this)">Lazer</button>
       </div>
       <div class="card" id="lanc-list"><div class="empty"><div class="empty-icon">📋</div>Nenhum lançamento.<br>Toque no + para adicionar.</div></div>
@@ -293,7 +306,6 @@
     <button class="nav-item" id="nav-metas" onclick="goTo('metas')"><svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="6"/></svg><span>Metas</span></button>
     <button class="nav-item" id="nav-relatorios" onclick="goTo('relatorios')"><svg class="nav-svg" viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg><span>Relatórios</span></button>
     <button class="nav-item" id="nav-cartoes" onclick="goTo('cartoes')"><svg class="nav-svg" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>Cartões</span></button>
-    <button class="nav-item" id="nav-perfil" onclick="goTo('perfil')"><svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Perfil</span></button>
   </nav>
 </div>
 
@@ -306,10 +318,32 @@
       <button class="type-btn" id="btn-desp" onclick="setTipo('despesa')">− Despesa</button>
     </div>
     <div class="field"><label>Descrição</label><input id="l-desc" placeholder="Ex: Salário, Supermercado..."></div>
-    <div class="field"><label>Valor (R$)</label><input id="l-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
-    <div class="field"><label>Categoria</label><select id="l-cat"><option value="receita">💰 Salário / Receita</option><option value="alimentacao">🛒 Alimentação</option><option value="moradia">🏠 Moradia</option>
-        <option value="contas">🧾 Contas (água, luz, gás, internet)</option><option value="transporte">🚗 Transporte</option><option value="saude">❤️ Saúde</option><option value="lazer">🎮 Lazer</option><option value="educacao">📚 Educação</option><option value="investimento">📈 Investimento</option><option value="outros">📦 Outros</option></select></div>
-    <div class="field" id="field-pagamento">
+    <div class="row2">
+      <div class="field"><label>Valor (R$)</label><input id="l-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
+      <div class="field"><label>Data</label><input id="l-data" type="date"></div>
+    </div>
+    <div class="field"><label>Categoria</label>
+      <select id="l-cat">
+        <option value="receita">💰 Salário / Receita</option>
+        <option value="alimentacao">🛒 Alimentação</option>
+        <option value="moradia">🏠 Moradia</option>
+        <option value="contas">🧾 Contas (água, luz, gás, internet)</option>
+        <option value="transporte">🚗 Transporte</option>
+        <option value="saude">❤️ Saúde</option>
+        <option value="beleza">💆 Beleza / Estética</option>
+        <option value="academia">🏋️ Academia / Bem-estar</option>
+        <option value="pets">🐾 Pets</option>
+        <option value="filhos">👶 Filhos / Escola</option>
+        <option value="lazer">🎮 Lazer / Entretenimento</option>
+        <option value="viagem">✈️ Viagem</option>
+        <option value="presentes">🎁 Presentes</option>
+        <option value="educacao">📚 Educação</option>
+        <option value="vestuario">👕 Vestuário</option>
+        <option value="investimento">📈 Investimento</option>
+        <option value="outros">📦 Outros</option>
+      </select>
+    </div>
+    <div class="field" id="field-pagamento" style="display:none">
       <label>Forma de pagamento</label>
       <select id="l-pag" onchange="toggleCartao()">
         <option value="pix">💸 Pix</option>
@@ -321,22 +355,17 @@
     </div>
     <div class="field" id="field-cartao" style="display:none">
       <label>Cartão</label>
-      <select id="l-cartao"><option value="">Sem cartão específico</option></select>
+      <select id="l-cartao"><option value="">Selecione o cartão</option></select>
     </div>
     <div class="field" id="field-parcelas" style="display:none">
       <label>Número de parcelas</label>
       <select id="l-parcelas">
         <option value="1">À vista</option>
-        <option value="2">2x</option>
-        <option value="3">3x</option>
-        <option value="4">4x</option>
-        <option value="5">5x</option>
-        <option value="6">6x</option>
-        <option value="7">7x</option>
-        <option value="8">8x</option>
-        <option value="9">9x</option>
-        <option value="10">10x</option>
-        <option value="11">11x</option>
+        <option value="2">2x</option><option value="3">3x</option>
+        <option value="4">4x</option><option value="5">5x</option>
+        <option value="6">6x</option><option value="7">7x</option>
+        <option value="8">8x</option><option value="9">9x</option>
+        <option value="10">10x</option><option value="11">11x</option>
         <option value="12">12x</option>
       </select>
     </div>
@@ -415,8 +444,15 @@
         <option value="contas">🧾 Contas (água, luz, gás, internet)</option>
         <option value="transporte">🚗 Transporte</option>
         <option value="saude">❤️ Saúde</option>
-        <option value="lazer">🎮 Lazer</option>
+        <option value="beleza">💆 Beleza / Estética</option>
+        <option value="academia">🏋️ Academia / Bem-estar</option>
+        <option value="pets">🐾 Pets</option>
+        <option value="filhos">👶 Filhos / Escola</option>
+        <option value="lazer">🎮 Lazer / Entretenimento</option>
+        <option value="viagem">✈️ Viagem</option>
+        <option value="presentes">🎁 Presentes</option>
         <option value="educacao">📚 Educação</option>
+        <option value="vestuario">👕 Vestuário</option>
         <option value="investimento">📈 Investimento</option>
         <option value="outros">📦 Outros</option>
       </select>
@@ -623,8 +659,51 @@ function toggleCartao() {
   var pag = document.getElementById('l-pag').value;
   var fc = document.getElementById('field-cartao');
   var fp = document.getElementById('field-parcelas');
-  if(pag === 'credito') { fc.style.display='block'; fp.style.display='block'; }
-  else { fc.style.display='none'; fp.style.display='none'; }
+  if(pag === 'credito') {
+    // Verificar se tem cartões cadastrados
+    if(!state.cartoes || state.cartoes.length === 0) {
+      // Voltar para pix e mostrar alerta
+      document.getElementById('l-pag').value = 'pix';
+      fc.style.display = 'none';
+      fp.style.display = 'none';
+      mostrarAlertaCartao();
+      return;
+    }
+    fc.style.display = 'block';
+    fp.style.display = 'block';
+  } else {
+    fc.style.display = 'none';
+    fp.style.display = 'none';
+  }
+}
+
+function mostrarAlertaCartao() {
+  var existing = document.getElementById('modal-alerta-cartao');
+  if(existing) { existing.classList.add('open'); return; }
+  var div = document.createElement('div');
+  div.id = 'modal-alerta-cartao';
+  div.className = 'overlay open';
+  div.onclick = function(e){ if(e.target===div) div.classList.remove('open'); };
+  var inner = document.createElement('div');
+  inner.className = 'sheet';
+  inner.style.textAlign = 'center';
+  inner.innerHTML =
+    '<div class="sheet-handle"></div>' +
+    '<div style="font-size:40px;margin-bottom:12px">&#x1F4B3;</div>' +
+    '<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">Nenhum cartão cadastrado</div>' +
+    '<div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px">Para lançar uma despesa no crédito, você precisa cadastrar um cartão primeiro.<br>Vá em <strong>Cartões</strong> na barra de navegação.</div>' +
+    '<button class="btn-primary" id="btn-ir-cartoes">Ir para Cartões</button>' +
+    '<button class="btn-secondary" id="btn-fechar-alerta">Agora não</button>';
+  div.appendChild(inner);
+  document.body.appendChild(div);
+  document.getElementById('btn-ir-cartoes').onclick = function(){
+    div.classList.remove('open');
+    closeModal('modal');
+    goTo('cartoes');
+  };
+  document.getElementById('btn-fechar-alerta').onclick = function(){
+    div.classList.remove('open');
+  };
 }
 
 function renderCartoesRelatorio() {
@@ -678,13 +757,13 @@ var PAG_LABEL = {pix:'Pix',debito:'Débito',credito:'Crédito',dinheiro:'Dinheir
 // ── PARCELAMENTO ──────────────────────────────────────────────────────────────
 function gerarParcelas(base, parcelas, cartaoId, pagamento) {
   var lancamentos = [];
-  var hoje = new Date();
+  var dataBase = base.data ? new Date(base.data) : new Date();
   for(var i = 0; i < parcelas; i++) {
-    var d = new Date(hoje.getFullYear(), hoje.getMonth() + i, hoje.getDate());
+    var d = new Date(dataBase.getFullYear(), dataBase.getMonth() + i, dataBase.getDate());
     lancamentos.push({
       id: state.nextId++,
       tipo: 'despesa',
-      desc: base.desc + (parcelas > 1 ? ' ('+( i+1)+'/'+parcelas+')' : ''),
+      desc: base.desc + (parcelas > 1 ? ' ('+(i+1)+'/'+parcelas+')' : ''),
       val: Math.round((base.val / parcelas) * 100) / 100,
       cat: base.cat,
       pagamento: pagamento,
@@ -716,8 +795,23 @@ function goTo(s){
 
 function openModal(){
   atualizarSelectCartoes();
+  // Pré-preencher data de hoje
+  var inputData = document.getElementById('l-data');
+  if(inputData && !inputData.value) {
+    var hoje = new Date();
+    var dd = String(hoje.getDate()).padStart(2,'0');
+    var mm = String(hoje.getMonth()+1).padStart(2,'0');
+    inputData.value = hoje.getFullYear()+'-'+mm+'-'+dd;
+  }
+  // Mostrar/ocultar pagamento conforme tipo
   var fp = document.getElementById('field-pagamento');
   if(fp) fp.style.display = tipoAtual==='receita' ? 'none' : 'block';
+  // Reset cartão/parcelas
+  var fc = document.getElementById('field-cartao');
+  var fpar = document.getElementById('field-parcelas');
+  if(fc) fc.style.display = 'none';
+  if(fpar) fpar.style.display = 'none';
+  if(document.getElementById('l-pag')) document.getElementById('l-pag').value = 'pix';
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -737,35 +831,47 @@ function setTipo(t){
 }
 
 function salvarLanc(){
-  var desc=document.getElementById('l-desc').value.trim();
-  var val=parseFloat(document.getElementById('l-val').value);
-  var cat=document.getElementById('l-cat').value;
-  if(!desc||!val||val<=0){toast('Preencha descrição e valor');return;}
-  var pag = tipoAtual==='receita' ? 'pix' : (document.getElementById('l-pag')?document.getElementById('l-pag').value:'pix');
+  var desc = document.getElementById('l-desc').value.trim();
+  var val  = parseFloat(document.getElementById('l-val').value);
+  var cat  = document.getElementById('l-cat').value;
+  // Data: usar campo ou hoje
+  var dataInput = document.getElementById('l-data');
+  var dataISO;
+  if(dataInput && dataInput.value) {
+    dataISO = new Date(dataInput.value + 'T12:00:00').toISOString();
+  } else {
+    dataISO = new Date().toISOString();
+  }
+  if(!desc || !val || val <= 0){ toast('Preencha descrição e valor'); return; }
+  var pag = tipoAtual === 'receita' ? 'pix' : (document.getElementById('l-pag') ? document.getElementById('l-pag').value : 'pix');
   var cartaoId = null;
   var parcelas = 1;
   if(pag === 'credito') {
     var cSel = document.getElementById('l-cartao');
     cartaoId = cSel && cSel.value ? parseInt(cSel.value) : null;
+    if(!cartaoId){ toast('Selecione o cartão'); return; }
     var pSel = document.getElementById('l-parcelas');
     parcelas = pSel ? parseInt(pSel.value)||1 : 1;
   }
   if(tipoAtual === 'despesa' && parcelas > 1) {
-    var novos = gerarParcelas({desc:desc,val:val,cat:cat}, parcelas, cartaoId, pag);
+    var novos = gerarParcelas({desc:desc, val:val, cat:cat, data:dataISO}, parcelas, cartaoId, pag);
     novos.forEach(function(l){ state.lancamentos.push(l); });
     toast('Compra parcelada em '+parcelas+'x salva ✓');
   } else {
-    state.lancamentos.push({id:state.nextId++,tipo:tipoAtual,desc:desc,val:val,cat:cat,
-      pagamento:pag,cartaoId:cartaoId,parcelas:1,parcelaAtual:1,data:new Date().toISOString()});
+    state.lancamentos.push({
+      id: state.nextId++, tipo: tipoAtual, desc: desc, val: val, cat: cat,
+      pagamento: pag, cartaoId: cartaoId, parcelas: 1, parcelaAtual: 1, data: dataISO
+    });
     toast('Lançamento salvo ✓');
   }
   save();
-  document.getElementById('l-desc').value='';
-  document.getElementById('l-val').value='';
-  if(document.getElementById('l-pag')) document.getElementById('l-pag').value='pix';
-  if(document.getElementById('field-cartao')) document.getElementById('field-cartao').style.display='none';
-  if(document.getElementById('field-parcelas')) document.getElementById('field-parcelas').style.display='none';
-  closeModal('modal');renderAll();
+  document.getElementById('l-desc').value = '';
+  document.getElementById('l-val').value = '';
+  if(dataInput) dataInput.value = '';
+  if(document.getElementById('l-pag')) document.getElementById('l-pag').value = 'pix';
+  if(document.getElementById('field-cartao')) document.getElementById('field-cartao').style.display = 'none';
+  if(document.getElementById('field-parcelas')) document.getElementById('field-parcelas').style.display = 'none';
+  closeModal('modal'); renderAll();
 }
 
 function filterL(f,btn){
