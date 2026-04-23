@@ -74,26 +74,64 @@
     .pag-ticket{background:#ffedd5;color:#9a3412}
     .toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 70px);left:50%;transform:translateX(-50%) translateY(-20px);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:99;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .onboarding{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 24px 48px;text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .auth-loading{opacity:0.7;pointer-events:none}
+    .btn-primary:disabled{opacity:0.6;cursor:not-allowed}
     .onboard-sub{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:28px;max-width:300px}.onboard-features{text-align:left;margin-bottom:32px;width:100%;max-width:320px}.onboard-feat{display:flex;align-items:center;gap:14px;padding:10px 0;font-size:15px;color:var(--text)}.onboard-feat-icon{width:36px;height:36px;border-radius:10px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
   </style>
 </head>
 <body>
 
-<div class="onboarding" id="onboarding">
-  <img id="ob-logo" alt="VoceMaisValor" style="width:220px;height:auto;margin:24px auto 12px;display:block">
-  <h1 style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:16px">Bem-vindo ao VoceMaisValor</h1>
-  <p class="onboard-sub">Controle seu dinheiro, defina metas e acompanhe sua evolução financeira.</p>
-  <div class="onboard-features">
-    <div class="onboard-feat"><div class="onboard-feat-icon">📊</div>Dashboard com visão completa do mês</div>
-    <div class="onboard-feat"><div class="onboard-feat-icon">🎯</div>Metas financeiras com progresso em tempo real</div>
-    <div class="onboard-feat"><div class="onboard-feat-icon">📈</div>Relatórios e gráficos de evolução</div>
-    <div class="onboard-feat"><div class="onboard-feat-icon">🔒</div>Seus dados ficam no seu dispositivo</div>
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 24px 48px">
+  <img id="ob-logo" alt="VoceMaisValor" style="width:200px;height:auto;margin:20px auto 10px;display:block">
+  <h1 style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;text-align:center">VoceMaisValor</h1>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:28px;text-align:center">Controle financeiro pessoal e familiar</p>
+
+  <!-- Tabs login/cadastro -->
+  <div style="display:flex;background:var(--pill);border-radius:12px;padding:3px;margin-bottom:24px;width:100%;max-width:320px">
+    <button id="tab-login" onclick="showTab('login')" style="flex:1;padding:10px;border:none;background:var(--card);color:var(--text);border-radius:9px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Entrar</button>
+    <button id="tab-cadastro" onclick="showTab('cadastro')" style="flex:1;padding:10px;border:none;background:transparent;color:var(--muted);border-radius:9px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">Criar conta</button>
   </div>
-  <div style="width:100%;max-width:320px">
-    <div class="field"><label>Seu nome</label><input id="ob-nome" placeholder="Ex: Daniel" maxlength="30"></div>
-    <button class="btn-primary" onclick="startApp()">Começar agora</button>
-    <p style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Beta gratuito — seu feedback é muito bem-vindo</p>
+
+  <!-- LOGIN -->
+  <div id="form-login" style="width:100%;max-width:320px">
+    <div class="field"><label>Email</label><input id="login-email" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="field"><label>Senha</label>
+      <div style="position:relative">
+        <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:12px 44px 12px 14px;border:0.5px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);outline:none">
+        <button onclick="toggleSenha('login-senha')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted)">👁</button>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <button onclick="showTab('recuperar')" style="width:100%;padding:12px;background:none;border:none;color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;margin-top:8px">Esqueci minha senha</button>
+    <div id="login-erro" style="color:var(--red);font-size:13px;text-align:center;margin-top:8px;display:none"></div>
   </div>
+
+  <!-- CADASTRO -->
+  <div id="form-cadastro" style="width:100%;max-width:320px;display:none">
+    <div class="field"><label>Seu nome</label><input id="cad-nome" type="text" placeholder="Ex: Daniel Silva" maxlength="50"></div>
+    <div class="field"><label>Email</label><input id="cad-email" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="field"><label>Senha</label>
+      <div style="position:relative">
+        <input id="cad-senha" type="password" placeholder="mínimo 6 caracteres" autocomplete="new-password" style="width:100%;padding:12px 44px 12px 14px;border:0.5px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);outline:none">
+        <button onclick="toggleSenha('cad-senha')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted)">👁</button>
+      </div>
+    </div>
+    <div class="field"><label>Confirmar senha</label><input id="cad-confirma" type="password" placeholder="repita a senha" autocomplete="new-password"></div>
+    <button class="btn-primary" id="btn-cadastro" onclick="fazerCadastro()">Criar conta gratuita</button>
+    <div id="cad-erro" style="color:var(--red);font-size:13px;text-align:center;margin-top:8px;display:none"></div>
+  </div>
+
+  <!-- RECUPERAR SENHA -->
+  <div id="form-recuperar" style="width:100%;max-width:320px;display:none">
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;text-align:center;line-height:1.5">Digite seu email e enviaremos um link para redefinir sua senha.</p>
+    <div class="field"><label>Email</label><input id="rec-email" type="email" placeholder="seu@email.com"></div>
+    <button class="btn-primary" id="btn-rec" onclick="recuperarSenha()">Enviar link de recuperação</button>
+    <button onclick="showTab('login')" style="width:100%;padding:12px;background:none;border:none;color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;margin-top:8px">Voltar para login</button>
+    <div id="rec-msg" style="font-size:13px;text-align:center;margin-top:8px;display:none"></div>
+  </div>
+
+  <p style="font-size:11px;color:var(--muted);margin-top:28px;text-align:center;line-height:1.5;max-width:280px">Seus dados ficam seguros e sincronizados entre todos os seus dispositivos.</p>
 </div>
 
 <div id="app" style="display:none">
@@ -118,7 +156,7 @@
         <div class="hero-val" id="h-saldo">R$ 0,00</div>
         <div class="hero-row">
           <div class="hero-pill" onclick="event.stopPropagation();goTo('relatorios')"><div class="hero-pill-label">Receitas ›</div><div class="hero-pill-val" id="h-rec">R$ 0</div></div>
-          <div class="hero-pill" onclick="event.stopPropagation();goTo('relatorios')"><div class="hero-pill-label">Despesas ›</div><div class="hero-pill-val" id="h-desp">R$ 0</div></div>
+          <div class="hero-pill" onclick="event.stopPropagation();goTo('relatorios')" style="background:rgba(220,50,50,0.25)"><div class="hero-pill-label">Despesas ›</div><div class="hero-pill-val" id="h-desp" style="color:#ffb3b3">R$ 0</div></div>
         </div>
       </div>
       <div class="metrics">
@@ -224,6 +262,12 @@
     </div>
 
     <div class="screen" id="screen-cartoes">
+      <div class="card" style="margin-bottom:12px">
+        <div class="sec-title" style="margin-bottom:14px">Gastos por cartão — mês atual</div>
+        <div id="cartoes-rel-list-inline">
+          <div style="color:var(--muted);font-size:13px">Nenhum gasto com cartão registrado.</div>
+        </div>
+      </div>
       <div class="card" id="cartoes-list"></div>
       <div class="card">
         <div class="sec-title" style="margin-bottom:16px">Adicionar cartão</div>
@@ -289,6 +333,7 @@
         <div class="profile-menu-item" onclick="openConsult()"><div><div class="profile-menu-label">Consultoria de investimentos</div><div class="profile-menu-sub">Fale com Daniel Comaccio</div></div><span class="chevron">›</span></div>
         <div class="profile-menu-item" onclick="openProModal()"><div><div class="profile-menu-label">Conhecer o plano Pro</div><div class="profile-menu-sub">Relatórios avançados e mais</div></div><span class="chevron">›</span></div>
         <div class="profile-menu-item" onclick="clearData()"><div><div class="profile-menu-label" style="color:var(--red)">Limpar meus dados</div><div class="profile-menu-sub">Apaga lançamentos e metas</div></div><span class="chevron">›</span></div>
+        <div class="profile-menu-item" onclick="fazerLogout()"><div><div class="profile-menu-label" style="color:var(--red)">Sair da conta</div><div class="profile-menu-sub" id="p-email-sub">Encerrar sessão</div></div><span class="chevron">›</span></div>
       </div>
       <div class="card">
         <div class="sec-title" style="margin-bottom:16px">Como usar o app</div>
@@ -505,8 +550,59 @@ var CAT = {
 };
 var MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-function save(){try{localStorage.setItem('vmv_state',JSON.stringify(state));}catch(e){}}
-function load(){try{var s=localStorage.getItem('vmv_state');if(s)state=JSON.parse(s);}catch(e){}}
+// ── SUPABASE CONFIG ───────────────────────────────────────────────────────
+var SB_URL = 'https://zyqlvzuqdytogeyxlrrh.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cWx2enVxZHl0b2dleXhscnJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODg4MTAsImV4cCI6MjA5MjQ2NDgxMH0.u76g6rqsruHGl6nordtDBszkGBKkqxxC65cpn1GMAys';
+var SB_USER = null; // usuário autenticado atual
+
+function sbHeaders(extra) {
+  var h = {'apikey': SB_KEY, 'Authorization': 'Bearer ' + (SB_USER ? SB_USER.access_token : SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal'};
+  if(extra) Object.assign(h, extra);
+  return h;
+}
+
+function sbFetch(path, opts) {
+  return fetch(SB_URL + path, Object.assign({headers: sbHeaders(opts && opts.headers)}, opts));
+}
+
+// Save: salva no Supabase se logado, senão usa localStorage como fallback
+function save() {
+  try { localStorage.setItem('vmv_state_local', JSON.stringify(state)); } catch(e) {}
+  if(!SB_USER) return;
+  var userId = SB_USER.user.id;
+  var payload = {user_id: userId, lancamentos: state.lancamentos, metas: state.metas, cartoes: state.cartoes, nextId: state.nextId, updated_at: new Date().toISOString()};
+  sbFetch('/rest/v1/user_data?user_id=eq.'+userId, {
+    method: 'PUT',
+    headers: {'Prefer': 'resolution=merge-duplicates'},
+    body: JSON.stringify(payload)
+  }).catch(function(){});
+}
+
+// Load: carrega do localStorage (dados temporários antes do login)
+function load() {
+  try { var s = localStorage.getItem('vmv_state_local'); if(s) state = JSON.parse(s); } catch(e) {}
+}
+
+// Carrega dados do Supabase após login
+async function loadFromSupabase(userId) {
+  try {
+    var r = await sbFetch('/rest/v1/user_data?user_id=eq.'+userId+'&select=*');
+    if(!r.ok) return false;
+    var rows = await r.json();
+    if(rows && rows.length > 0) {
+      var data = rows[0];
+      state.lancamentos = data.lancamentos || [];
+      state.metas = data.metas || [];
+      state.cartoes = data.cartoes || [];
+      state.nextId = data.nextId || 1;
+      // compat
+      state.cartoes.forEach(function(c){if(!c.venc)c.venc=10;if(!c.limite)c.limite=0;});
+      state.lancamentos.forEach(function(l){if(!l.pagamento)l.pagamento='pix';if(!l.cartaoId)l.cartaoId=null;if(!l.parcelas)l.parcelas=1;if(!l.parcelaAtual)l.parcelaAtual=1;});
+      return true;
+    }
+    return false;
+  } catch(e) { return false; }
+}
 function fmt(v){return 'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtK(v){return v>=1000?'R$\u00a0'+(v/1000).toFixed(1)+'k':'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function initials(n){return n.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
@@ -514,24 +610,130 @@ function mesAtual(){var d=new Date();return MESES[d.getMonth()]+' '+d.getFullYea
 
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
-function startApp(){
-  var nome=document.getElementById('ob-nome').value.trim()||'Usuário';
-  state.user={nome:nome};
-  state.lancamentos=[
-    {id:1,tipo:'receita',desc:'Salário',val:5500,cat:'receita',pagamento:'pix',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()},
-    {id:2,tipo:'despesa',desc:'Aluguel',val:1400,cat:'moradia',pagamento:'pix',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()},
-    {id:3,tipo:'despesa',desc:'Supermercado',val:650,cat:'alimentacao',pagamento:'credito',cartaoId:1,parcelas:1,parcelaAtual:1,data:new Date().toISOString()},
-    {id:4,tipo:'despesa',desc:'Gasolina',val:280,cat:'transporte',pagamento:'debito',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()},
-    {id:5,tipo:'receita',desc:'Freelance',val:800,cat:'receita',pagamento:'pix',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()},
-    {id:6,tipo:'despesa',desc:'Academia',val:110,cat:'saude',pagamento:'debito',cartaoId:null,parcelas:1,parcelaAtual:1,data:new Date().toISOString()}
-  ];
-  state.metas=[{id:1,nome:'Reserva de emergência',alvo:18000,atual:4500},{id:2,nome:'Viagem nas férias',alvo:6000,atual:1800}];
-  state.cartoes=[{id:1,nome:'Nubank',bandeira:'Mastercard',cor:'8B5CF6',venc:10,limite:5000},{id:2,nome:'Itaú',bandeira:'Visa',cor:'E53E3E',venc:20,limite:8000}];
-  state.nextId=10;
-  save();
-  document.getElementById('onboarding').style.display='none';
+// ── AUTH FUNCTIONS ────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('form-cadastro').style.display = tab==='cadastro' ? 'block' : 'none';
+  document.getElementById('form-recuperar').style.display = tab==='recuperar' ? 'block' : 'none';
+  var tl = document.getElementById('tab-login');
+  var tc = document.getElementById('tab-cadastro');
+  if(tl && tc) {
+    if(tab==='login') { tl.style.background='var(--card)'; tl.style.color='var(--text)'; tl.style.fontWeight='600'; tc.style.background='transparent'; tc.style.color='var(--muted)'; tc.style.fontWeight='500'; }
+    else if(tab==='cadastro') { tc.style.background='var(--card)'; tc.style.color='var(--text)'; tc.style.fontWeight='600'; tl.style.background='transparent'; tl.style.color='var(--muted)'; tl.style.fontWeight='500'; }
+  }
+}
+
+function toggleSenha(id) {
+  var el = document.getElementById(id);
+  el.type = el.type==='password' ? 'text' : 'password';
+}
+
+function setAuthLoading(btn, loading, texto) {
+  var el = document.getElementById(btn);
+  if(el) { el.disabled = loading; el.textContent = loading ? 'Aguarde...' : texto; }
+}
+
+function showErro(id, msg) {
+  var el = document.getElementById(id);
+  if(el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+}
+
+async function fazerLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var senha = document.getElementById('login-senha').value;
+  if(!email || !senha) { showErro('login-erro','Preencha email e senha.'); return; }
+  setAuthLoading('btn-login', true, 'Entrar');
+  showErro('login-erro','');
+  try {
+    var r = await fetch(SB_URL+'/auth/v1/token?grant_type=password', {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email:email, password:senha})
+    });
+    var data = await r.json();
+    if(!r.ok) { showErro('login-erro', data.error_description||data.msg||'Email ou senha incorretos.'); setAuthLoading('btn-login',false,'Entrar'); return; }
+    await entrarNoApp(data, data.user.user_metadata && data.user.user_metadata.nome ? data.user.user_metadata.nome : email.split('@')[0]);
+  } catch(e) { showErro('login-erro','Erro de conexão. Verifique sua internet.'); setAuthLoading('btn-login',false,'Entrar'); }
+}
+
+async function fazerCadastro() {
+  var nome = document.getElementById('cad-nome').value.trim();
+  var email = document.getElementById('cad-email').value.trim();
+  var senha = document.getElementById('cad-senha').value;
+  var confirma = document.getElementById('cad-confirma').value;
+  if(!nome) { showErro('cad-erro','Informe seu nome.'); return; }
+  if(!email) { showErro('cad-erro','Informe seu email.'); return; }
+  if(senha.length < 6) { showErro('cad-erro','A senha precisa ter pelo menos 6 caracteres.'); return; }
+  if(senha !== confirma) { showErro('cad-erro','As senhas não coincidem.'); return; }
+  setAuthLoading('btn-cadastro', true, 'Criar conta gratuita');
+  showErro('cad-erro','');
+  try {
+    var r = await fetch(SB_URL+'/auth/v1/signup', {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email:email, password:senha, data:{nome:nome}})
+    });
+    var data = await r.json();
+    if(!r.ok) { showErro('cad-erro', data.error_description||data.msg||'Erro ao criar conta.'); setAuthLoading('btn-cadastro',false,'Criar conta gratuita'); return; }
+    if(data.session) {
+      await entrarNoApp(data.session, nome);
+    } else {
+      showErro('cad-erro','');
+      document.getElementById('cad-erro').style.color='var(--green)';
+      showErro('cad-erro','Conta criada! Verifique seu email para confirmar o cadastro.');
+      setAuthLoading('btn-cadastro',false,'Criar conta gratuita');
+    }
+  } catch(e) { showErro('cad-erro','Erro de conexão. Verifique sua internet.'); setAuthLoading('btn-cadastro',false,'Criar conta gratuita'); }
+}
+
+async function recuperarSenha() {
+  var email = document.getElementById('rec-email').value.trim();
+  if(!email) { document.getElementById('rec-msg').textContent='Informe seu email.'; document.getElementById('rec-msg').style.color='var(--red)'; document.getElementById('rec-msg').style.display='block'; return; }
+  setAuthLoading('btn-rec', true, 'Enviar link de recuperação');
+  try {
+    await fetch(SB_URL+'/auth/v1/recover', {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email:email})
+    });
+    document.getElementById('rec-msg').textContent='Link enviado! Verifique seu email.';
+    document.getElementById('rec-msg').style.color='var(--green)';
+    document.getElementById('rec-msg').style.display='block';
+    setAuthLoading('btn-rec',false,'Enviar link de recuperação');
+  } catch(e) { setAuthLoading('btn-rec',false,'Enviar link de recuperação'); }
+}
+
+async function entrarNoApp(session, nome) {
+  SB_USER = session;
+  localStorage.setItem('vmv_session', JSON.stringify({access_token:session.access_token, refresh_token:session.refresh_token, user:session.user}));
+  state.user = {nome: nome, email: session.user.email, id: session.user.id};
+  // Tentar carregar dados do Supabase
+  var temDados = await loadFromSupabase(session.user.id);
+  if(!temDados) {
+    // Primeira vez: dados zerados (sem seed)
+    state.lancamentos = [];
+    state.metas = [];
+    state.cartoes = [];
+    state.nextId = 1;
+    save(); // criar registro no Supabase
+  }
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  setupUser(); renderAll(); verificarVencimentos();
+}
+
+function fazerLogout() {
+  SB_USER = null;
+  localStorage.removeItem('vmv_session');
+  state = {user:null, lancamentos:[], metas:[], cartoes:[], nextId:1};
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  showTab('login');
+  toast('Sessão encerrada');
+}
+
+// startApp mantido para compatibilidade interna
+function startApp() {
+  document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  setupUser();renderAll();
+  setupUser(); renderAll();
 }
 
 function setupUser(){
@@ -546,6 +748,11 @@ function setupUser(){
   document.getElementById('p-name').innerHTML=n+' <span style="font-size:14px;color:var(--blue)">✎</span>';
   var hn = document.getElementById('header-nome');
   if(hn) hn.textContent = n.split(' ')[0];
+  // Mostrar email no perfil
+  var peSub = document.getElementById('p-email-sub');
+  if(peSub && state.user && state.user.email) peSub.textContent = state.user.email;
+  var peEl = document.getElementById('p-email');
+  if(peEl && state.user && state.user.email) peEl.textContent = state.user.email;
 }
 
 function verificarVencimentos() {
@@ -718,13 +925,19 @@ function mostrarAlertaCartao() {
 }
 
 function renderCartoesRelatorio() {
-  var el = document.getElementById('cartoes-rel-list');
+  renderCartoesRelatorioInEl('cartoes-rel-list');
+  renderCartoesRelatorioInEl('cartoes-rel-list-inline');
+}
+function renderCartoesRelatorioInEl(elId) {
+  var el = document.getElementById(elId);
   if(!el) return;
   if(!state.cartoes.length) {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px">Nenhum cartão cadastrado. Adicione em <strong>Cartões</strong>.</div>';
     return;
   }
-  var total = state.lancamentos.filter(function(l){ return l.tipo==='despesa'; }).reduce(function(s,l){ return s+l.val; }, 0);
+  var hojeC=new Date(); var mesC=hojeC.getMonth(); var anoC=hojeC.getFullYear();
+  var lancMesC=state.lancamentos.filter(function(l){var d=new Date(l.data);return d.getMonth()===mesC&&d.getFullYear()===anoC;});
+  var total=lancMesC.filter(function(l){return l.tipo==='despesa';}).reduce(function(s,l){return s+l.val;},0);
   el.innerHTML = state.cartoes.map(function(c) {
     var g = gastoCartao(c.id);
     var pct = total > 0 ? Math.round((g/total)*100) : 0;
@@ -793,8 +1006,8 @@ function goTo(s){
   document.getElementById('screen-'+s).classList.add('active');
   document.getElementById('nav-'+s).classList.add('active');
   document.getElementById('main-scroll').scrollTop=0;
-  document.getElementById('fab').style.display=(s==='metas'||s==='perfil')?'none':'flex';
-  var titles={home:'VoceMaisValor',lancamentos:'Lançamentos',metas:'Metas',relatorios:'Relatórios',perfil:'Meu Perfil'};
+  document.getElementById('fab').style.display=(s==='metas'||s==='perfil'||s==='cartoes')?'none':'flex';
+  var titles={home:'VoceMaisValor',lancamentos:'Lançamentos',metas:'Metas',relatorios:'Relatórios',cartoes:'Meus Cartões',perfil:'Meu Perfil'};
   var n=state.user?state.user.nome.split(' ')[0]:'',hora=new Date().getHours();
   var gr=hora<12?'Bom dia, ':hora<18?'Boa tarde, ':'Boa noite, ';
   document.getElementById('tb-title').textContent=s==='home'?gr+n+'!':titles[s];
@@ -802,6 +1015,7 @@ function goTo(s){
   if(s==='lancamentos')renderLancs();
   if(s==='metas')renderMetas();
   if(s==='relatorios')renderRelatorios();
+  if(s==='cartoes'){renderCartoes();renderCartoesRelatorio();}
 }
 
 function openModal(){
@@ -897,26 +1111,31 @@ function lancItem(l){
   if(l.tipo==='despesa' && l.pagamento){
     var pagClass='pag-'+(l.pagamento||'pix');
     var pagLabel='';
+    // Cartão: mostrar nome do cartão
     if(l.cartaoId){
       var card=state.cartoes.find(function(c){return c.id===l.cartaoId;});
       if(card) pagLabel=card.nome;
     } else {
       pagLabel=PAG_LABEL[l.pagamento]||l.pagamento;
     }
-    if(l.parcelas>1){ pagLabel+=' · '+l.parcelaAtual+'/'+l.parcelas+'x'; }
+    // Parcelas: adicionar indicador limpo
+    if(l.parcelas>1){
+      pagLabel+=' · '+l.parcelaAtual+'/'+l.parcelas+'x';
+    }
     pagBadge='<span class="pag-badge '+pagClass+'">'+pagLabel+'</span>';
   }
+  // Badge à vista (só para despesas sem parcelamento)
   if(l.tipo==='despesa' && l.parcelas===1 && l.pagamento==='credito'){
     pagBadge='<span class="pag-badge pag-credito">'+(l.cartaoId?(state.cartoes.find(function(c){return c.id===l.cartaoId;})||{nome:'Crédito'}).nome:'Crédito')+' · à vista</span>';
   }
-  // Badge de data — só mostra se não for do mês atual
+  // Badge de data — discreto, só aparece quando NÃO é do mês atual
   var dataBadge='';
   var MESES_ABR=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   if(l.data){
     var dl=new Date(l.data), hoje=new Date();
-    var mesmomes = dl.getMonth()===hoje.getMonth() && dl.getFullYear()===hoje.getFullYear();
+    var mesmomes=dl.getMonth()===hoje.getMonth() && dl.getFullYear()===hoje.getFullYear();
     if(!mesmomes){
-      dataBadge='<span style="font-size:10px;color:var(--muted);background:var(--pill);border-radius:5px;padding:1px 5px;flex-shrink:0">'+MESES_ABR[dl.getMonth()]+'/'+String(dl.getFullYear()).slice(2)+'</span>';
+      dataBadge='<span style="font-size:10px;color:var(--muted);background:var(--pill);border-radius:5px;padding:1px 6px;flex-shrink:0">'+MESES_ABR[dl.getMonth()]+'/'+String(dl.getFullYear()).slice(2)+'</span>';
     }
   }
   return '<div class="lanc" style="cursor:pointer" onclick="abrirEdicao('+l.id+')">'+
@@ -1000,6 +1219,7 @@ function renderDash(){
   document.getElementById('h-saldo').textContent=fmt(t.saldo);
   document.getElementById('h-rec').textContent=fmtK(t.rec);
   document.getElementById('h-desp').textContent=fmtK(t.desp);
+  document.getElementById('h-desp').style.color = t.desp > 0 ? '#ffb3b3' : '#fff';
   document.getElementById('h-saldo').style.color=t.saldo<0?'#ffcdd2':'#fff';
   var taxa=t.rec>0?Math.round((t.saldo/t.rec)*100):0;
   document.getElementById('m-taxa').textContent=taxa+'%';
@@ -1092,11 +1312,17 @@ function getMesNavegado() {
 function atualizarNavMes() {
   var d = getMesNavegado();
   var MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var nomeMes = MESES_NOMES[d.getMonth()]+' '+d.getFullYear();
   var lbl = document.getElementById('label-mes-nav');
   var sub = document.getElementById('label-mes-sub');
   var btnProx = document.getElementById('btn-mes-prox');
-  if(lbl) lbl.textContent = mesSelecionado === 0 ? 'Mês atual' : MESES_NOMES[d.getMonth()]+' '+d.getFullYear();
-  if(sub) sub.textContent = mesSelecionado === 0 ? MESES_NOMES[d.getMonth()]+' '+d.getFullYear() : '';
+  // Título principal: sempre mostra mês e ano
+  if(lbl) lbl.textContent = nomeMes;
+  // Subtítulo: badge "mês atual" ou vazio
+  if(sub) {
+    sub.textContent = mesSelecionado === 0 ? '● mês atual' : '';
+    sub.style.color = mesSelecionado === 0 ? 'var(--green)' : 'var(--muted)';
+  }
   if(btnProx) btnProx.style.opacity = mesSelecionado >= 0 ? '0.3' : '1';
   if(btnProx) btnProx.style.pointerEvents = mesSelecionado >= 0 ? 'none' : 'auto';
 }
@@ -1534,16 +1760,42 @@ function renderAll(){renderDash();if(document.getElementById('screen-lancamentos
 
 load();
 if(!state.cartoes) state.cartoes = [];
-// garantir campos novos em cartões antigos
-state.cartoes.forEach(function(c){ if(!c.venc) c.venc=10; if(!c.limite) c.limite=0; });
-// garantir campos novos em lançamentos antigos
+state.cartoes.forEach(function(c){ if(!c.venc)c.venc=10; if(!c.limite)c.limite=0; });
 state.lancamentos.forEach(function(l){
-  if(!l.pagamento) l.pagamento = 'pix';
-  if(!l.cartaoId) l.cartaoId = null;
-  if(!l.parcelas) l.parcelas = 1;
-  if(!l.parcelaAtual) l.parcelaAtual = 1;
+  if(!l.pagamento) l.pagamento='pix';
+  if(!l.cartaoId) l.cartaoId=null;
+  if(!l.parcelas) l.parcelas=1;
+  if(!l.parcelaAtual) l.parcelaAtual=1;
 });
-if(state.user){document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';setupUser();renderAll();verificarVencimentos();}
+
+// Verificar sessão Supabase salva
+(async function() {
+  try {
+    var sess = localStorage.getItem('vmv_session');
+    if(sess) {
+      var s = JSON.parse(sess);
+      // Renovar token
+      var r = await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token', {
+        method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+        body: JSON.stringify({refresh_token: s.refresh_token})
+      });
+      if(r.ok) {
+        var nova = await r.json();
+        SB_USER = nova;
+        localStorage.setItem('vmv_session', JSON.stringify({access_token:nova.access_token, refresh_token:nova.refresh_token, user:nova.user}));
+        var nome = (nova.user.user_metadata && nova.user.user_metadata.nome) ? nova.user.user_metadata.nome : nova.user.email.split('@')[0];
+        state.user = {nome:nome, email:nova.user.email, id:nova.user.id};
+        await loadFromSupabase(nova.user.id);
+        document.getElementById('auth-screen').style.display='none';
+        document.getElementById('app').style.display='flex';
+        setupUser(); renderAll(); verificarVencimentos();
+        return;
+      }
+    }
+  } catch(e) {}
+  // Sem sessão válida — mostrar tela de auth
+  document.getElementById('auth-screen').style.display='flex';
+})();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}
 </script>
 </body>
