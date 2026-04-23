@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0d1b3e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -16,14 +16,14 @@
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     :root{--bg:#f7f8fa;--card:#fff;--border:#e8eaed;--text:#1a1a2e;--muted:#6b7280;--blue:#1847b8;--blue-light:#ebf3ff;--green:#1a8a4a;--green-light:#eaf3de;--red:#c0392b;--red-light:#fdf2f2;--amber:#b8690a;--nav:#fff;--nav-border:#e8eaed;--pill:#f0f2f5;--pill-active:#1847b8;--pill-active-text:#fff}
     @media(prefers-color-scheme:dark){:root{--bg:#0f1117;--card:#1c1f2a;--border:#2a2d3a;--text:#e8eaf0;--muted:#9095a8;--blue:#4a7ee8;--blue-light:#1a2440;--green:#2ecc71;--green-light:#0f2a1a;--red:#e74c3c;--red-light:#2a0f0f;--amber:#f0a500;--nav:#1c1f2a;--nav-border:#2a2d3a;--pill:#252836;--pill-active:#4a7ee8;--pill-active-text:#fff}}
-    html{height:100%}body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
-    #app{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
+    html{height:100%;height:100dvh}body{height:100%;height:100dvh;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    #app{height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
     .topbar{background:var(--card);border-bottom:0.5px solid var(--border);padding:14px 20px 12px;padding-top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
     .topbar-title{font-size:17px;font-weight:600;color:var(--text)}.topbar-sub{font-size:12px;color:var(--muted);margin-top:1px}
     .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--blue);cursor:pointer}
-    .main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:80px}
+    .main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
     .screen{display:none;padding:16px}.screen.active{display:block}
-    .bottom-nav{background:var(--nav);border-top:0.5px solid var(--nav-border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+    .bottom-nav{background:var(--nav);border-top:0.5px solid var(--nav-border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);position:sticky;bottom:0;z-index:20}
     .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 8px;gap:3px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-size:10px;font-family:inherit}
     .nav-item.active{color:var(--blue)}.nav-svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.nav-item.active .nav-svg{stroke:var(--blue)}
     .fab{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 68px);right:20px;width:54px;height:54px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:15;box-shadow:0 4px 20px rgba(24,71,184,0.4)}.fab:active{transform:scale(0.94)}.fab svg{width:26px;height:26px;fill:white}
@@ -99,7 +99,13 @@
 <div id="app" style="display:none">
   <div class="topbar">
     <div><div class="topbar-title" id="tb-title">VoceMaisValor</div><div class="topbar-sub" id="tb-sub"></div></div>
-    <div class="avatar" id="user-avatar" onclick="goTo('perfil')" title="Meu Perfil" style="position:relative">?<div style="position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;background:var(--green);border-radius:50%;border:2px solid var(--card)"></div></div>
+    <div onclick="goTo('perfil')" style="display:flex;align-items:center;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+      <div style="text-align:right">
+        <div style="font-size:12px;font-weight:600;color:var(--text)" id="header-nome">Meu Perfil</div>
+        <div style="font-size:10px;color:var(--muted)">toque para acessar</div>
+      </div>
+      <div class="avatar" id="user-avatar" style="position:relative">?<div style="position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;background:var(--green);border-radius:50%;border:2px solid var(--card)"></div></div>
+    </div>
   </div>
   <div class="main" id="main-scroll">
 
@@ -218,6 +224,13 @@
     </div>
 
     <div class="screen" id="screen-cartoes">
+      <!-- Card resumo gastos por cartão -->
+      <div class="card" style="margin-bottom:12px">
+        <div class="sec-title" style="margin-bottom:14px">Gastos por cartão — mês atual</div>
+        <div id="cartoes-rel-list-inline">
+          <div style="color:var(--muted);font-size:13px">Nenhum gasto com cartão registrado.</div>
+        </div>
+      </div>
       <div class="card" id="cartoes-list"></div>
       <div class="card">
         <div class="sec-title" style="margin-bottom:16px">Adicionar cartão</div>
@@ -435,7 +448,10 @@
       <button class="type-btn" id="edit-btn-desp" onclick="setTipoEdit('despesa')">− Despesa</button>
     </div>
     <div class="field"><label>Descrição</label><input id="edit-desc" placeholder="Ex: Salário, Supermercado..."></div>
-    <div class="field"><label>Valor (R$)</label><input id="edit-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
+    <div class="row2">
+      <div class="field"><label>Valor (R$)</label><input id="edit-val" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
+      <div class="field"><label>Data</label><input id="edit-data" type="date"></div>
+    </div>
     <div class="field"><label>Categoria</label>
       <select id="edit-cat">
         <option value="receita">💰 Salário / Receita</option>
@@ -535,6 +551,8 @@ function setupUser(){
   document.getElementById('user-avatar').textContent=av;
   document.getElementById('p-avatar').textContent=av;
   document.getElementById('p-name').innerHTML=n+' <span style="font-size:14px;color:var(--blue)">✎</span>';
+  var hn = document.getElementById('header-nome');
+  if(hn) hn.textContent = n.split(' ')[0];
 }
 
 function verificarVencimentos() {
@@ -594,8 +612,12 @@ function excluirCartao(id) {
 }
 
 function gastoCartao(cartaoId) {
+  var hoje = new Date();
+  var mesG = hoje.getMonth(); var anoG = hoje.getFullYear();
   return state.lancamentos.filter(function(l){
-    return l.tipo === 'despesa' && l.cartaoId === cartaoId;
+    var d = new Date(l.data);
+    return l.tipo==='despesa' && l.cartaoId===cartaoId &&
+           d.getMonth()===mesG && d.getFullYear()===anoG;
   }).reduce(function(s,l){ return s + l.val; }, 0);
 }
 
@@ -707,13 +729,23 @@ function mostrarAlertaCartao() {
 }
 
 function renderCartoesRelatorio() {
-  var el = document.getElementById('cartoes-rel-list');
+  // Renderizar tanto na aba relatórios quanto na aba cartões
+  renderCartoesRelatorioInEl('cartoes-rel-list');
+  renderCartoesRelatorioInEl('cartoes-rel-list-inline');
+}
+
+function renderCartoesRelatorioInEl(elId) {
+  var el = document.getElementById(elId);
   if(!el) return;
   if(!state.cartoes.length) {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px">Nenhum cartão cadastrado. Adicione em <strong>Cartões</strong>.</div>';
     return;
   }
-  var total = state.lancamentos.filter(function(l){ return l.tipo==='despesa'; }).reduce(function(s,l){ return s+l.val; }, 0);
+  var hojeC = new Date(); var mesC = hojeC.getMonth(); var anoC = hojeC.getFullYear();
+  var lancMesC = state.lancamentos.filter(function(l){
+    var d=new Date(l.data); return d.getMonth()===mesC && d.getFullYear()===anoC;
+  });
+  var total = lancMesC.filter(function(l){ return l.tipo==='despesa'; }).reduce(function(s,l){ return s+l.val; }, 0);
   el.innerHTML = state.cartoes.map(function(c) {
     var g = gastoCartao(c.id);
     var pct = total > 0 ? Math.round((g/total)*100) : 0;
@@ -780,10 +812,11 @@ function goTo(s){
   document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active');});
   document.getElementById('screen-'+s).classList.add('active');
-  document.getElementById('nav-'+s).classList.add('active');
+  var navEl = document.getElementById('nav-'+s);
+  if(navEl) navEl.classList.add('active');
   document.getElementById('main-scroll').scrollTop=0;
-  document.getElementById('fab').style.display=(s==='metas'||s==='perfil')?'none':'flex';
-  var titles={home:'VoceMaisValor',lancamentos:'Lançamentos',metas:'Metas',relatorios:'Relatórios',perfil:'Meu Perfil'};
+  document.getElementById('fab').style.display=(s==='metas'||s==='perfil'||s==='cartoes')?'none':'flex';
+  var titles={home:'VoceMaisValor',lancamentos:'Lançamentos',metas:'Metas',relatorios:'Relatórios',cartoes:'Meus Cartões',perfil:'Meu Perfil'};
   var n=state.user?state.user.nome.split(' ')[0]:'',hora=new Date().getHours();
   var gr=hora<12?'Bom dia, ':hora<18?'Boa tarde, ':'Boa noite, ';
   document.getElementById('tb-title').textContent=s==='home'?gr+n+'!':titles[s];
@@ -791,6 +824,7 @@ function goTo(s){
   if(s==='lancamentos')renderLancs();
   if(s==='metas')renderMetas();
   if(s==='relatorios')renderRelatorios();
+  if(s==='cartoes'){renderCartoes();renderCartoesRelatorio();}
 }
 
 function openModal(){
@@ -974,8 +1008,15 @@ function renderMetas(){
 }
 
 function totals(){
-  var rec=state.lancamentos.filter(function(l){return l.tipo==='receita';}).reduce(function(s,l){return s+l.val;},0);
-  var desp=state.lancamentos.filter(function(l){return l.tipo==='despesa';}).reduce(function(s,l){return s+l.val;},0);
+  var hoje = new Date();
+  var mes = hoje.getMonth();
+  var ano = hoje.getFullYear();
+  var lancMes = state.lancamentos.filter(function(l){
+    var d = new Date(l.data);
+    return d.getMonth()===mes && d.getFullYear()===ano;
+  });
+  var rec=lancMes.filter(function(l){return l.tipo==='receita';}).reduce(function(s,l){return s+l.val;},0);
+  var desp=lancMes.filter(function(l){return l.tipo==='despesa';}).reduce(function(s,l){return s+l.val;},0);
   return {rec:rec,desp:desp,saldo:rec-desp};
 }
 
@@ -1201,7 +1242,30 @@ function renderRelatorios(){
   var dados = calcDadosMensais();
 
   // Renderizar resumo do topo
-  renderResumoMes(dados, periodo);
+  // Resumo: calcular totais do mês navegado se em modo Mês
+  var dadosParaResumo = dados;
+  if(periodo === 'Mês') {
+    var meNavRes = getMesNavegado();
+    var recNavRes = 0, despNavRes = 0;
+    state.lancamentos.forEach(function(l){
+      var d = new Date(l.data);
+      if(d.getMonth()===meNavRes.getMonth() && d.getFullYear()===meNavRes.getFullYear()){
+        if(l.tipo==='receita') recNavRes+=l.val; else despNavRes+=l.val;
+      }
+    });
+    dadosParaResumo = [{label:'Mês', rec:recNavRes, desp:despNavRes, saldo:recNavRes-despNavRes}];
+    // Mês anterior para tendência
+    var meAnterior = new Date(meNavRes.getFullYear(), meNavRes.getMonth()-1, 1);
+    var recAnt=0, despAnt=0;
+    state.lancamentos.forEach(function(l){
+      var d=new Date(l.data);
+      if(d.getMonth()===meAnterior.getMonth()&&d.getFullYear()===meAnterior.getFullYear()){
+        if(l.tipo==='receita') recAnt+=l.val; else despAnt+=l.val;
+      }
+    });
+    if(recAnt>0||despAnt>0) dadosParaResumo.unshift({label:'Ant', rec:recAnt, desp:despAnt, saldo:recAnt-despAnt});
+  }
+  renderResumoMes(dadosParaResumo, periodo);
 
   // Filtrar por período
   var dadosFiltrados;
@@ -1217,15 +1281,15 @@ function renderRelatorios(){
 
   // Se só 1 mês, mostrar semanas
   var labels, recs, desps, saldos;
-  if(dadosFiltrados.length === 1) {
-    // Quebrar por semanas do mês atual
-    var hoje = new Date();
+  if(periodo === 'Mês') {
+    // Modo mês: quebrar por semanas do mês NAVEGADO
+    var meNav = getMesNavegado();
     var semanas = ['Sem 1','Sem 2','Sem 3','Sem 4'];
     recs  = [0,0,0,0];
     desps = [0,0,0,0];
     state.lancamentos.forEach(function(l) {
       var d = new Date(l.data);
-      if(d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear()) {
+      if(d.getMonth()===meNav.getMonth() && d.getFullYear()===meNav.getFullYear()) {
         var sem = Math.min(3, Math.floor((d.getDate()-1)/7));
         if(l.tipo==='receita') recs[sem]+=l.val;
         else desps[sem]+=l.val;
@@ -1233,6 +1297,10 @@ function renderRelatorios(){
     });
     saldos = recs.map(function(r,i){return r-desps[i];});
     labels = semanas;
+    // Atualizar dadosFiltrados para resumo e pizza usarem o mês correto
+    var recMes  = recs.reduce(function(a,b){return a+b;},0);
+    var despMes = desps.reduce(function(a,b){return a+b;},0);
+    dadosFiltrados = [{label:'Mês', rec:recMes, desp:despMes, saldo:recMes-despMes}];
   } else {
     labels = dadosFiltrados.map(function(d){return d.label;});
     recs   = dadosFiltrados.map(function(d){return d.rec;});
@@ -1266,16 +1334,19 @@ function renderRelatorios(){
     '<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#c0392b;flex-shrink:0"></span><span style="color:var(--muted);font-size:12px">Despesas</span></span>';
 
   // ── Gráfico Pizza — Despesas por categoria (dados reais, período) ─────────
+  // Pizza: filtrar pelo mês navegado (modo Mês) ou período selecionado
   var lancPeriodo = state.lancamentos.filter(function(l) {
     if(l.tipo !== 'despesa') return false;
-    if(dadosFiltrados.length === 1 && labels[0]==='Sem 1') {
-      // modo semanal = mês atual
-      var hoje2 = new Date();
+    if(periodo === 'Mês') {
+      var meNav2 = getMesNavegado();
       var d = new Date(l.data);
-      return d.getMonth()===hoje2.getMonth() && d.getFullYear()===hoje2.getFullYear();
+      return d.getMonth()===meNav2.getMonth() && d.getFullYear()===meNav2.getFullYear();
     }
-    // filtrar pelos meses do período
-    var inicio = new Date(); inicio.setMonth(inicio.getMonth() - dadosFiltrados.length + 1); inicio.setDate(1);
+    // Para 3m/6m/ano: filtrar pelo período
+    var inicio = new Date();
+    inicio.setMonth(inicio.getMonth() - dadosFiltrados.length + 1);
+    inicio.setDate(1);
+    inicio.setHours(0,0,0,0);
     return new Date(l.data) >= inicio;
   });
 
@@ -1422,6 +1493,14 @@ function abrirEdicao(id){
   document.getElementById('edit-desc').value = l.desc;
   document.getElementById('edit-val').value = l.val;
   document.getElementById('edit-cat').value = l.cat;
+  // Preencher data
+  var editDataEl = document.getElementById('edit-data');
+  if(editDataEl && l.data) {
+    var d = new Date(l.data);
+    var dd = String(d.getDate()).padStart(2,'0');
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    editDataEl.value = d.getFullYear()+'-'+mm+'-'+dd;
+  }
   var br=document.getElementById('edit-btn-rec'),bd=document.getElementById('edit-btn-desp');
   var fp = document.getElementById('edit-field-pag');
   if(l.tipo==='receita'){
@@ -1456,6 +1535,11 @@ function salvarEdicao(){
   state.lancamentos[idx].val=val;
   state.lancamentos[idx].cat=cat;
   state.lancamentos[idx].tipo=tipoEdit;
+  // Salvar data editada
+  var editDataEl2 = document.getElementById('edit-data');
+  if(editDataEl2 && editDataEl2.value) {
+    state.lancamentos[idx].data = new Date(editDataEl2.value + 'T12:00:00').toISOString();
+  }
   if(tipoEdit==='despesa'){
     var pag=document.getElementById('edit-pag');
     if(pag) state.lancamentos[idx].pagamento=pag.value;
