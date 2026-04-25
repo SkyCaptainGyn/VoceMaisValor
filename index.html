@@ -743,12 +743,9 @@ async function entrarNoApp(session, nome) {
 }
 
 // ── OAUTH ────────────────────────────────────────────────────────────────────
-async function loginGoogle() {
-  var r = await fetch(SB_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(window.location.origin), {
-    method:'GET', headers:{'apikey':SB_KEY}
-  });
-  // Redireciona para o Google
-  window.location.href = SB_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(window.location.origin);
+function loginGoogle() {
+  var redirectTo = window.location.origin + window.location.pathname;
+  window.location.href = SB_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
 
 // Verificar se voltou de OAuth (hash com access_token)
